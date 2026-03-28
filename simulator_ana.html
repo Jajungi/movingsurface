@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>3D 회전면 물리 시뮬레이터 v8.0 - 수치해석 및 주기 분석</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: sans-serif; background-color: #111; color: white; }
+        
+        .panel { 
+            position: absolute; top: 10px; z-index: 100; 
+            background: rgba(0,0,0,0.85); padding: 12px; border-radius: 8px; 
+            width: 290px; max-height: 95vh; overflow-y: auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5); font-size: 12px; 
+        }
+        .panel::-webkit-scrollbar { width: 6px; }
+        .panel::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+
+        #panel-left { left: 10px; }
+        #panel-right { right: 10px; width: 400px; }
+
+        h3 { margin-top: 0; margin-bottom: 8px; color: #3498db; font-size: 15px; text-align: center; }
+        h4 { margin: 12px 0 6px 0; color: #f1c40f; font-size: 13px; border-bottom: 1px solid #555; padding-bottom: 3px; }
+        
+        label { display: block; margin-top: 6px; font-weight: bold; color: #ccc; }
+        select, input[type="number"], button { 
+            margin-top: 3px; padding: 4px; width: 100%; box-sizing: border-box; 
+            border-radius: 4px; border: 1px solid #444; background: #222; color: white; font-size: 12px;
+        }
+        
+        .slider-container { display: flex; align-items: center; justify-content: space-between; margin-top: 3px; }
+        input[type="range"] { width: 70%; cursor: pointer; height: 10px; }
+        .val-display { color: #f1c40f; font-weight: bold; width: 25%; text-align: right; font-size: 11px; }
+        
+        .checkbox-container { display: flex; align-items: center; margin-top: 8px; color: #fff; cursor: pointer; }
+        input[type="checkbox"] { width: auto; margin-right: 6px; cursor: pointer; }
+
+        .data-box { background: #222; padding: 6px; border-radius: 4px; margin-top: 4px; border: 1px solid #444; }
+        .data-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .data-val { color: #2ecc71; font-family: monospace; font-size: 13px; font-weight: bold;}
+        .data-val.warn { color: #e74c3c; }
+        .data-val.highlight { color: #9b59b6; }
+        
+        .color-uea { color: #ffffff; }
+        .color-ue { color: #3498db; }
+
+        .stability-box { text-align: center; padding: 10px; font-size: 15px; background: #1a1a1a; border: 2px solid #333; }
+
+        #resetBtn { background-color: #e74c3c; color: white; border: none; cursor: pointer; padding: 8px; margin-top: 12px; font-weight: bold; font-size: 13px; transition: all 0.3s ease; }
+        #resetBtn:hover { background-color: #c0392b; }
+        #resetBtn.highlight { background-color: #f1c40f !important; color: #000 !important; box-shadow: 0 0 10px #f1c40f; animation: pulse 1s infinite; }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
+        #statusText { margin-top: 8px; font-size: 13px; font-weight: bold; text-align: center; min-height: 1.2em;}
+        .escaped { color: #f1c40f; } .error { color: #ff4757; }
+        
+        .graph-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; 
+        }
+        .graph-item { 
+            background: #111; border: 1px solid #555; border-radius: 4px; padding: 4px; 
+        }
+        .graph-title { 
+            font-size: 10px; color: #ccc; text-align: center; margin-bottom: 4px; 
+        }
+        .graph-item canvas { 
+            width: 100%; height: 110px; display: block; background-color: #0a0a0a; border-radius: 2px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+
+    <div id="panel-left" class="panel">
+        <h3>⚙️ 시뮬레이션 설정</h3>
+        
+        <label>곡면: 
+            <select id="surfaceType" onchange="updateDefaultAlpha()">
+                <option value="cone">원뿔 (Cone)</option>
+                <option value="paraboloid" selected>포물면 (Paraboloid)</option>
+                <option value="cubic">3차 곡면 (Cubic)</option>
+                <option value="inverse">역수 곡면 (Inverse)</option>
+                <option value="bowl">반구형 그릇 (Bowl)</option>
+            </select>
+        </label>
+        <label>곡면 계수 (α): <input type="number" id="alpha" value="1.0" step="0.1"></label>
+        <label>초기 반지름 (r0): <input type="number" id="r0" value="1.2" step="0.1"></label>
+        <label>각운동량 (Lz): <input type="number" id="Lz" value="1.0" step="0.1"></label>
+        
+        <label>초기 튕김 속도 (vr0):
+            <div class="slider-container">
+                <input type="range" id="vrSlider" min="-1.5" max="1.5" step="0.1" value="0.0" oninput="document.getElementById('vrVal').innerText=this.value">
+                <span id="vrVal" class="val-display">0.0</span>
+            </div>
+        </label>
+
+        <label class="checkbox-container">
+            <input type="checkbox" id="traceToggle" checked onchange="toggleTrace()"> 궤적 선 표시
+        </label>
+        <label>궤적 길이:
+            <div class="slider-container">
+                <input type="range" id="traceLenSlider" min="1" max="5" step="1" value="3" oninput="document.getElementById('traceLenVal').innerText=this.value+'배'">
+                <span id="traceLenVal" class="val-display">3배</span>
+            </div>
+        </label>
+
+        <button id="resetBtn" onclick="applySettings()">새 조건으로 시작</button>
+        <div id="statusText"></div> 
+    </div>
+
+    <div id="panel-right" class="panel">
+        <h3>📈 실시간 분석 패널</h3>
+        
+        <h4>🛡️ 궤도 안정성</h4>
+        <div class="data-box stability-box">
+            <span id="stability" class="data-val">-</span>
+        </div>
+
+        <h4>🌀 대진폭 수치해석 (주기 궤도 탐색)</h4>
+        <div class="data-box">
+            <div class="data-row" title="방위각이 2π만큼 회전하는 평균 시간"><span>방위 주기 (Ta):</span> <span id="simTa" class="data-val">-</span></div>
+            <div class="data-row" title="입자가 안팎으로 한 번 왕복하는 시간"><span>진동 주기 (Tr):</span> <span id="simTr" class="data-val">측정 대기중...</span></div>
+            <div class="data-row" title="비율이 유리수면 폐곡선 궤도 형성"><span>비율 (Ta / Tr):</span> <span id="simRatio" class="data-val highlight">-</span></div>
+        </div>
+
+        <h4>⚙️ 역학적 에너지 보존</h4>
+        <div class="data-box">
+            <div class="data-row"><span>초기 에너지 (E0):</span> <span id="eInitial" class="data-val">0.000</span></div>
+            <div class="data-row"><span>현재 에너지 (Et):</span> <span id="realE" class="data-val">0.000</span></div>
+            <div class="data-row"><span>적분 오차율:</span> <span id="eError" class="data-val">0.000%</span></div>
+        </div>
+
+        <h4>⚡ 이중 퍼텐셜 우물</h4>
+        <div class="data-box">
+            <div class="data-row"><span class="color-uea">논문 유효 퍼텐셜 (U_ea):</span> <span id="realUea" class="data-val color-uea">0.000</span></div>
+            <div class="data-row"><span class="color-ue">일반 유효 퍼텐셜 (U_e):</span> <span id="realUe" class="data-val color-ue">0.000</span></div>
+        </div>
+        
+        <div class="graph-grid">
+            <div class="graph-item">
+                <div class="graph-title">Motion of the Particle (Horizontal)</div>
+                <canvas id="canvasXY" width="180" height="110"></canvas>
+            </div>
+            <div class="graph-item">
+                <div class="graph-title">Potential Energy vs Radial Distance</div>
+                <canvas id="canvasUr" width="180" height="110"></canvas>
+            </div>
+            <div class="graph-item">
+                <div class="graph-title">Radial Distance vs time</div>
+                <canvas id="canvasRt" width="180" height="110"></canvas>
+            </div>
+            <div class="graph-item">
+                <div class="graph-title">Azimuthal Angle vs time</div>
+                <canvas id="canvasPhit" width="180" height="110"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(2.5, 3.5, 5);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; controls.dampingFactor = 0.05;
+        controls.minDistance = 0.5; controls.maxDistance = 50; controls.zoomSpeed = 1.2;    
+
+        const light = new THREE.DirectionalLight(0xffffff, 1.2);
+        light.position.set(5, 10, 7);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x606060));
+
+        let surfaceMesh, particle, trailLine;
+        let trailPositions = [];
+        const MAX_POSSIBLE_TRAIL_POINTS = 5000; 
+        const MAX_PHYSICS_R = 10; 
+
+        // 물리 변수들
+        let r, vr, phi, dt, Lz, alpha, surfaceType;
+        let isRunning = false;
+        let isEscaped = false;
+        
+        let simTime = 0;
+        let initialEnergy = 0;
+        let lastVr = 0;
+        let lastPeriapsisTime = -1;
+        let lastPeriapsisPhi = 0;
+
+        // 그래프 데이터 캐싱 변수
+        const MAX_HIST = 300; 
+        let histT = [], histR = [], histPhi = [], histX = [], histZ = [];
+        let graphData = []; 
+        let gMinY = -1, gMaxY = 1, gMaxR = 3;
+
+        // 캔버스 컨텍스트
+        const ctxXY = document.getElementById('canvasXY').getContext('2d');
+        const ctxUr = document.getElementById('canvasUr').getContext('2d');
+        const ctxRt = document.getElementById('canvasRt').getContext('2d');
+        const ctxPhit = document.getElementById('canvasPhit').getContext('2d');
+
+        const statusEl = document.getElementById('statusText');
+        const resetBtnEl = document.getElementById('resetBtn');
+
+        function updateDefaultAlpha() {
+            const type = document.getElementById('surfaceType').value;
+            const alphaInput = document.getElementById('alpha');
+            if (type === 'inverse' && parseFloat(alphaInput.value) > 0) alphaInput.value = -1.0;
+            else if (type !== 'inverse' && parseFloat(alphaInput.value) < 0 && type !== 'bowl') alphaInput.value = 1.0;
+        }
+
+        function getDerivatives(rad, type, a) {
+            let z, zp, zpp;
+            switch(type) {
+                case 'cone': z = a*rad; zp = a; zpp = 0; break;
+                case 'paraboloid': z = a*rad*rad; zp = 2*a*rad; zpp = 2*a; break;
+                case 'cubic': z = a*Math.pow(rad, 3); zp = 3*a*rad*rad; zpp = 6*a*rad; break;
+                case 'inverse': z = a/rad; zp = -a/(rad*rad); zpp = 2*a/Math.pow(rad, 3); break;
+                case 'bowl': 
+                    let safeRad = Math.min(rad, 0.999);
+                    let root = Math.sqrt(1 - safeRad*safeRad);
+                    z = -root; zp = safeRad/root; zpp = 1/Math.pow(1 - safeRad*safeRad, 1.5); break;
+                default: z = 0; zp = 0; zpp = 0;
+            }
+            return {z, zp, zpp};
+        }
+
+        function createSurface() {
+            if (surfaceMesh) scene.remove(surfaceMesh);
+            const points = [];
+            const maxVisibleR = surfaceType === 'bowl' ? 0.99 : 3.5;
+            const minVisibleR = surfaceType === 'inverse' ? 0.15 : 0;
+            
+            for (let i = 0; i <= 60; i++) {
+                let currentR = minVisibleR + (maxVisibleR - minVisibleR) * (i / 60);
+                points.push(new THREE.Vector2(currentR, getDerivatives(currentR, surfaceType, alpha).z));
+            }
+
+            const geometry = new THREE.LatheGeometry(points, 64);
+            const material = new THREE.MeshPhongMaterial({ 
+                color: 0x3498db, transparent: true, opacity: 0.35, 
+                side: THREE.DoubleSide, wireframe: true 
+            });
+            surfaceMesh = new THREE.Mesh(geometry, material);
+            scene.add(surfaceMesh);
+        }
+
+        function toggleTrace() { if (trailLine) trailLine.visible = document.getElementById('traceToggle').checked; }
+
+        function analyzeTheory() {
+            const {z, zp, zpp} = getDerivatives(r, surfaceType, alpha);
+            let stability = (r * zpp) + (3 * zp);
+            let stabEl = document.getElementById('stability');
+            if (stability > 0) { stabEl.innerText = "안정 (Stable) 🟢"; stabEl.className = "data-val"; stabEl.parentElement.style.borderColor = "#2ecc71";}
+            else { stabEl.innerText = "불안정 (Unstable) 🔴"; stabEl.className = "data-val warn"; stabEl.parentElement.style.borderColor = "#e74c3c";}
+        }
+
+        function calculateGraphData() {
+            graphData = [];
+            gMaxR = surfaceType === 'bowl' ? 0.99 : 3.0;
+            const step = gMaxR / 100;
+            let minU = Infinity;
+            let maxU = -Infinity;
+
+            for (let testR = 0.05; testR <= gMaxR; testR += step) {
+                const {z, zp} = getDerivatives(testR, surfaceType, alpha);
+                let u_ea = (Lz*Lz - 2*testR*testR*(initialEnergy - z)) / (2*testR*testR*(1 + zp*zp));
+                let u_e = (Lz*Lz)/(2*testR*testR) + z - initialEnergy;
+                
+                if (u_ea > 5) u_ea = 5; if (u_ea < -5) u_ea = -5;
+                if (u_e > 5) u_e = 5; if (u_e < -5) u_e = -5;
+
+                graphData.push({ rad: testR, uea: u_ea, ue: u_e });
+                if (u_ea < minU) minU = u_ea; if (u_ea > maxU) maxU = u_ea;
+                if (u_e < minU) minU = u_e;   if (u_e > maxU) maxU = u_e;
+            }
+            let margin = (maxU - minU) * 0.2;
+            if(margin === 0) margin = 1;
+            gMinY = minU - margin;
+            gMaxY = maxU + margin;
+        }
+
+        function applySettings() {
+            surfaceType = document.getElementById('surfaceType').value;
+            Lz = parseFloat(document.getElementById('Lz').value);
+            alpha = parseFloat(document.getElementById('alpha').value);
+            r = parseFloat(document.getElementById('r0').value);
+            vr = parseFloat(document.getElementById('vrSlider').value); 
+            
+            if (surfaceType === 'bowl' && r >= 1) { r = 0.95; document.getElementById('r0').value = r; }
+
+            phi = 0; dt = 0.005; 
+            simTime = 0;
+            lastVr = vr;
+            lastPeriapsisTime = -1;
+            lastPeriapsisPhi = 0;
+            histT = []; histR = []; histPhi = []; histX = []; histZ = [];
+            
+            document.getElementById('simTr').innerText = "측정 대기중...";
+            document.getElementById('simTa').innerText = "-";
+            document.getElementById('simRatio').innerText = "-";
+
+            isRunning = true; isEscaped = false;
+            statusEl.innerText = ""; statusEl.className = ""; resetBtnEl.className = "";
+
+            createSurface();
+            analyzeTheory(); 
+
+            const {z, zp} = getDerivatives(r, surfaceType, alpha);
+            initialEnergy = 0.5 * (1 + zp*zp) * vr*vr + (Lz*Lz)/(2*r*r) + z;
+            document.getElementById('eInitial').innerText = initialEnergy.toFixed(4);
+            document.getElementById('realE').innerText = initialEnergy.toFixed(4);
+            document.getElementById('eError').innerText = "0.000%";
+            document.getElementById('eError').className = "data-val";
+
+            calculateGraphData(); 
+
+            if (!particle) {
+                particle = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 16), new THREE.MeshPhongMaterial({ color: 0xe74c3c }));
+                scene.add(particle);
+            }
+
+            if (trailLine) scene.remove(trailLine);
+            trailPositions = [];
+            const trailGeo = new THREE.BufferGeometry();
+            trailGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(MAX_POSSIBLE_TRAIL_POINTS * 3), 3));
+            trailLine = new THREE.Line(trailGeo, new THREE.LineBasicMaterial({ color: 0xf1c40f, transparent: true, opacity: 0.8 }));
+            scene.add(trailLine);
+            
+            toggleTrace();
+            updateParticleVisuals();
+        }
+
+        function triggerEscape(msg, isError = false) {
+            isEscaped = true;
+            statusEl.innerText = msg || "🚀 입자가 날아갔습니다!";
+            statusEl.className = isError ? "error" : "escaped";
+            resetBtnEl.className = "highlight";
+        }
+
+        function updatePhysics() {
+            if (!isRunning || isEscaped) return;
+
+            if (r > MAX_PHYSICS_R) { triggerEscape(); return; }
+            if (r < 0.01 && surfaceType !== 'bowl') { triggerEscape("💥 중심 특이점으로 추락!", true); return; }
+            if (surfaceType === 'bowl' && r >= 0.99) { triggerEscape("🚀 그릇 밖으로 이탈!"); return; }
+
+            const {z, zp, zpp} = getDerivatives(r, surfaceType, alpha);
+            const zp2 = zp * zp;
+            const denominator = Math.pow(r, 3) * (1 + zp2);
+            
+            if (Math.abs(denominator) < 1e-8) { triggerEscape("⚠️ 물리 연산 한계", true); return; }
+
+            const numerator = (Lz * Lz) - (Math.pow(r, 3) * zp * (1 + zpp * vr * vr));
+            vr += (numerator / denominator) * dt;
+            r += vr * dt;
+            phi += (Lz / (r * r)) * dt;
+            simTime += dt;
+            
+            if (lastVr <= 0 && vr > 0 && r < MAX_PHYSICS_R) {
+                if (lastPeriapsisTime >= 0) {
+                    let Tr = simTime - lastPeriapsisTime;
+                    let deltaPhi = phi - lastPeriapsisPhi;
+                    
+                    let Ta = (2 * Math.PI * Tr) / deltaPhi;
+                    let ratio = Ta / Tr; 
+                    
+                    document.getElementById('simTr').innerText = Tr.toFixed(3) + " s";
+                    document.getElementById('simTa').innerText = Ta.toFixed(3) + " s";
+                    
+                    let ratioEl = document.getElementById('simRatio');
+                    ratioEl.innerText = ratio.toFixed(4);
+                    
+                    let diffToNearestInt = Math.abs(ratio - Math.round(ratio));
+                    if (diffToNearestInt < 0.05) ratioEl.style.color = "#f1c40f"; 
+                    else ratioEl.style.color = "#9b59b6"; 
+                }
+                lastPeriapsisTime = simTime;
+                lastPeriapsisPhi = phi;
+            }
+            lastVr = vr;
+
+            if (isNaN(r) || isNaN(vr) || isNaN(phi)) { triggerEscape("⚠️ 연산 오류", true); return; }
+        }
+
+        function drawGraphUr(currentR, currentUea, currentUe) {
+            const w = ctxUr.canvas.width;
+            const h = ctxUr.canvas.height;
+            ctxUr.clearRect(0, 0, w, h);
+
+            const mapX = (rad) => (rad / gMaxR) * w;
+            const mapY = (val) => h - ((val - gMinY) / (gMaxY - gMinY)) * h;
+
+            ctxUr.strokeStyle = '#555'; ctxUr.lineWidth = 1;
+            ctxUr.beginPath(); ctxUr.moveTo(0, mapY(0)); ctxUr.lineTo(w, mapY(0)); ctxUr.stroke();
+
+            ctxUr.strokeStyle = '#3498db'; ctxUr.lineWidth = 1.5;
+            ctxUr.beginPath();
+            for (let i = 0; i < graphData.length; i++) {
+                const px = mapX(graphData[i].rad); const py = mapY(graphData[i].ue);
+                if (i === 0) ctxUr.moveTo(px, py); else ctxUr.lineTo(px, py);
+            }
+            ctxUr.stroke();
+
+            ctxUr.strokeStyle = '#ffffff'; ctxUr.lineWidth = 2;
+            ctxUr.beginPath();
+            for (let i = 0; i < graphData.length; i++) {
+                const px = mapX(graphData[i].rad); const py = mapY(graphData[i].uea);
+                if (i === 0) ctxUr.moveTo(px, py); else ctxUr.lineTo(px, py);
+            }
+            ctxUr.stroke();
+
+            if(!isEscaped && currentR <= gMaxR) {
+                const cx = mapX(currentR);
+                const cy_uea = mapY(currentUea);
+                const cy_ue = mapY(currentUe);
+                
+                ctxUr.strokeStyle = 'rgba(231, 76, 60, 0.4)'; ctxUr.setLineDash([2, 2]);
+                ctxUr.beginPath(); ctxUr.moveTo(cx, h); ctxUr.lineTo(cx, Math.min(cy_uea, cy_ue)); ctxUr.stroke();
+                ctxUr.setLineDash([]);
+
+                ctxUr.fillStyle = '#e74c3c'; ctxUr.beginPath(); ctxUr.arc(cx, cy_uea, 3, 0, Math.PI * 2); ctxUr.fill();
+                ctxUr.fillStyle = '#3498db'; ctxUr.beginPath(); ctxUr.arc(cx, cy_ue, 2, 0, Math.PI * 2); ctxUr.fill();
+            }
+        }
+
+        function drawProjectionXY() {
+            const w = ctxXY.canvas.width; const h = ctxXY.canvas.height;
+            ctxXY.clearRect(0, 0, w, h);
+            if (histX.length < 2) return;
+
+            const maxR = gMaxR * 1.1; 
+            
+            // X축, Y축을 동일한 비율로 매핑 (캔버스 가로/세로 중 작은 쪽에 맞춤)
+            const minDim = Math.min(w, h);
+            const scale = (minDim / 2) / maxR;
+            
+            const mapX = (x) => x * scale + w / 2;
+            const mapY = (z) => z * scale + h / 2;
+
+            ctxXY.strokeStyle = '#333'; ctxXY.lineWidth = 1;
+            ctxXY.beginPath(); ctxXY.moveTo(0, h/2); ctxXY.lineTo(w, h/2); ctxXY.stroke();
+            ctxXY.beginPath(); ctxXY.moveTo(w/2, 0); ctxXY.lineTo(w/2, h); ctxXY.stroke();
+
+            ctxXY.strokeStyle = '#2ecc71'; ctxXY.lineWidth = 1.5;
+            ctxXY.beginPath();
+            for (let i = 0; i < histX.length; i++) {
+                if (i === 0) ctxXY.moveTo(mapX(histX[i]), mapY(histZ[i]));
+                else ctxXY.lineTo(mapX(histX[i]), mapY(histZ[i]));
+            }
+            ctxXY.stroke();
+
+            const lastIdx = histX.length - 1;
+            ctxXY.fillStyle = '#e74c3c';
+            ctxXY.beginPath(); ctxXY.arc(mapX(histX[lastIdx]), mapY(histZ[lastIdx]), 3, 0, Math.PI*2); ctxXY.fill();
+        }
+
+        function drawTimeSeries(ctx, dataArr, color) {
+            const w = ctx.canvas.width; const h = ctx.canvas.height;
+            ctx.clearRect(0, 0, w, h);
+            if (histT.length < 2) return;
+
+            let minVal = Math.min(...dataArr);
+            let maxVal = Math.max(...dataArr);
+            if (maxVal - minVal < 1e-5) { minVal -= 0.5; maxVal += 0.5; }
+            const margin = (maxVal - minVal) * 0.1;
+            minVal -= margin; maxVal += margin;
+
+            const tMin = histT[0]; const tMax = histT[histT.length - 1];
+            const mapX = (t) => ((t - tMin) / (tMax - tMin || 1)) * w;
+            const mapY = (v) => h - ((v - minVal) / (maxVal - minVal)) * h;
+
+            ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            for (let i = 0; i < histT.length; i++) {
+                if (i === 0) ctx.moveTo(mapX(histT[i]), mapY(dataArr[i]));
+                else ctx.lineTo(mapX(histT[i]), mapY(dataArr[i]));
+            }
+            ctx.stroke();
+
+            ctx.fillStyle = color;
+            ctx.beginPath(); ctx.arc(mapX(histT[histT.length-1]), mapY(dataArr[dataArr.length-1]), 2, 0, Math.PI*2); ctx.fill();
+        }
+
+        function updateRealTimeData() {
+            if (isEscaped) return;
+            const {z, zp} = getDerivatives(r, surfaceType, alpha);
+            
+            histT.push(simTime);
+            histR.push(r);
+            histPhi.push(phi);
+            histX.push(r * Math.cos(phi));
+            histZ.push(-r * Math.sin(phi)); 
+
+            if (histT.length > MAX_HIST) {
+                histT.shift(); histR.shift(); histPhi.shift(); histX.shift(); histZ.shift();
+            }
+
+            let currentE = 0.5 * (1 + zp*zp) * vr*vr + (Lz*Lz)/(2*r*r) + z;
+            let errorPct = 0;
+            if (Math.abs(initialEnergy) > 1e-6) {
+                errorPct = Math.abs((currentE - initialEnergy) / initialEnergy) * 100;
+            } else {
+                errorPct = Math.abs(currentE - initialEnergy) * 100;
+            }
+
+            document.getElementById('realE').innerText = currentE.toFixed(4);
+            let eErrorEl = document.getElementById('eError');
+            eErrorEl.innerText = errorPct.toFixed(4) + "%";
+            
+            if (errorPct > 0.5) eErrorEl.className = "data-val warn";
+            else eErrorEl.className = "data-val";
+
+            let u_ea = (Lz*Lz - 2*r*r*(currentE - z)) / (2*r*r*(1 + zp*zp));
+            let u_e = (Lz*Lz)/(2*r*r) + z - currentE;
+
+            document.getElementById('realUea').innerText = u_ea.toFixed(4);
+            document.getElementById('realUe').innerText = u_e.toFixed(4);
+            
+            drawProjectionXY();
+            drawGraphUr(r, u_ea, u_e);
+            drawTimeSeries(ctxRt, histR, '#f1c40f');
+            drawTimeSeries(ctxPhit, histPhi, '#9b59b6');
+        }
+
+        function updateParticleVisuals() {
+            const {z} = getDerivatives(r, surfaceType, alpha);
+            const px = r * Math.cos(phi);
+            const pz = -r * Math.sin(phi);
+            const py = z;
+
+            particle.position.set(px, py, pz);
+
+            if (!document.getElementById('traceToggle').checked) return;
+
+            const lengthMult = parseInt(document.getElementById('traceLenSlider').value);
+            const maxPts = lengthMult * 1000;
+
+            trailPositions.push(px, py, pz);
+            if (trailPositions.length > maxPts * 3) {
+                trailPositions.splice(0, trailPositions.length - (maxPts * 3)); 
+            }
+
+            const positions = trailLine.geometry.attributes.position.array;
+            for (let i = 0; i < trailPositions.length; i++) positions[i] = trailPositions[i];
+            
+            trailLine.geometry.setDrawRange(0, trailPositions.length / 3);
+            trailLine.geometry.attributes.position.needsUpdate = true;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            if (isRunning && !isEscaped) {
+                for (let i = 0; i < 6; i++) updatePhysics();
+                updateParticleVisuals(); 
+                updateRealTimeData();
+            }
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        updateDefaultAlpha();
+        applySettings();
+        animate();
+    </script>
+</body>
+</html>
