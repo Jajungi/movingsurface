@@ -49,6 +49,9 @@
         #resetBtn:hover { background-color: #c0392b; }
         #resetBtn.highlight { background-color: #f1c40f !important; color: #000 !important; box-shadow: 0 0 10px #f1c40f; animation: pulse 1s infinite; }
 
+        .preset-btn { background-color: #2980b9; margin-top: 4px; padding: 6px; font-size: 11px; border-radius: 4px;}
+        .preset-btn:hover { background-color: #1f618d; }
+
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
 
         #statusText { margin-top: 8px; font-size: 13px; font-weight: bold; text-align: center; min-height: 1.2em;}
@@ -84,8 +87,8 @@
                 <option value="bowl">반구형 그릇 (Bowl)</option>
             </select>
         </label>
-        <label>곡면 계수 (α): <input type="number" id="alpha" value="1.0" step="0.1"></label>
-        <label>초기 반지름 (r0): <input type="number" id="r0" value="1.2" step="0.1"></label>
+        <label>곡면 계수 (α): <input type="number" id="alpha" value="1.0" step="0.1" oninput="updateCircularGuide()"></label>
+        <label>초기 반지름 (r0): <input type="number" id="r0" value="1.2" step="0.1" oninput="updateCircularGuide()"></label>
         <label>각운동량 (Lz): <input type="number" id="Lz" value="1.0" step="0.1"></label>
         
         <label>초기 튕김 속도 (vr0):
@@ -107,6 +110,16 @@
 
         <button id="resetBtn" onclick="applySettings()">새 조건으로 시작</button>
         <div id="statusText"></div> 
+
+        <hr style="border-color: #444; margin: 10px 0;">
+        <h4 style="text-align:center; border:none; margin:0 0 5px 0; color:#2ecc71;">🎯 원운동 설계 가이드</h4>
+        <div class="data-box">
+            <div class="data-row" title="입력된 초기 반지름(r0)에서 원운동을 하기 위해 필요한 각운동량">
+                <span style="color:#ccc;">필요한 Lz:</span> 
+                <span id="circularLz" class="data-val highlight">-</span>
+            </div>
+            <button class="preset-btn" onclick="applyCircularLz()" style="width: 100%; margin-top: 5px; background-color: #27ae60; color: white;">이 Lz 적용 및 vr=0 으로 시작</button>
+        </div>
     </div>
 
     <div id="panel-right" class="panel">
@@ -182,7 +195,6 @@
         const MAX_POSSIBLE_TRAIL_POINTS = 5000; 
         const MAX_PHYSICS_R = 10; 
 
-        // 물리 변수들
         let r, vr, phi, dt, Lz, alpha, surfaceType;
         let isRunning = false;
         let isEscaped = false;
@@ -193,13 +205,11 @@
         let lastPeriapsisTime = -1;
         let lastPeriapsisPhi = 0;
 
-        // 그래프 데이터 캐싱 변수
         const MAX_HIST = 300; 
         let histT = [], histR = [], histPhi = [], histX = [], histZ = [];
         let graphData = []; 
         let gMinY = -1, gMaxY = 1, gMaxR = 3;
 
-        // 캔버스 컨텍스트
         const ctxXY = document.getElementById('canvasXY').getContext('2d');
         const ctxUr = document.getElementById('canvasUr').getContext('2d');
         const ctxRt = document.getElementById('canvasRt').getContext('2d');
@@ -213,7 +223,47 @@
             const alphaInput = document.getElementById('alpha');
             if (type === 'inverse' && parseFloat(alphaInput.value) > 0) alphaInput.value = -1.0;
             else if (type !== 'inverse' && parseFloat(alphaInput.value) < 0 && type !== 'bowl') alphaInput.value = 1.0;
+            updateCircularGuide(); 
         }
+
+        // --- 새로 추가된 원운동 가이드 계산 함수 ---
+        function updateCircularGuide() {
+            let type = document.getElementById('surfaceType').value;
+            let a = parseFloat(document.getElementById('alpha').value);
+            let rad = parseFloat(document.getElementById('r0').value);
+            
+            if (isNaN(a) || isNaN(rad)) return;
+            if (type === 'bowl' && rad >= 1) rad = 0.99;
+            
+            if (rad <= 0) {
+                document.getElementById('circularLz').innerText = "-";
+                return;
+            }
+
+            const {zp} = getDerivatives(rad, type, a);
+            // 원운동 조건: Lz = sqrt(r^3 * z'(r))
+            let lzSq = Math.pow(rad, 3) * zp;
+            
+            if (lzSq > 0) {
+                let reqLz = Math.sqrt(lzSq);
+                document.getElementById('circularLz').innerText = reqLz.toFixed(4);
+            } else {
+                document.getElementById('circularLz').innerText = "불가능";
+            }
+        }
+
+        function applyCircularLz() {
+            let requiredLz = document.getElementById('circularLz').innerText;
+            if(requiredLz === "-" || requiredLz === "불가능") {
+                alert("현재 조건에서는 원운동을 위한 Lz 값을 계산할 수 없습니다.");
+                return;
+            }
+            document.getElementById('Lz').value = requiredLz;
+            document.getElementById('vrSlider').value = 0;
+            document.getElementById('vrVal').innerText = "0.0";
+            applySettings();
+        }
+        // ------------------------------------------
 
         function getDerivatives(rad, type, a) {
             let z, zp, zpp;
@@ -320,6 +370,7 @@
             document.getElementById('eError').className = "data-val";
 
             calculateGraphData(); 
+            updateCircularGuide();
 
             if (!particle) {
                 particle = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 16), new THREE.MeshPhongMaterial({ color: 0xe74c3c }));
@@ -436,8 +487,6 @@
             if (histX.length < 2) return;
 
             const maxR = gMaxR * 1.1; 
-            
-            // X축, Y축을 동일한 비율로 매핑 (캔버스 가로/세로 중 작은 쪽에 맞춤)
             const minDim = Math.min(w, h);
             const scale = (minDim / 2) / maxR;
             
@@ -573,6 +622,7 @@
         });
 
         updateDefaultAlpha();
+        updateCircularGuide();
         applySettings();
         animate();
     </script>
