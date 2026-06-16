@@ -1,0 +1,8 @@
+# LaTeX build artifacts (compile.ps1 keeps only main.tex + main.pdf in output/)
+output/*.aux
+output/*.log
+output/*.out
+output/*.toc
+output/*.synctex.gz
+output/*.fls
+output/*.fdb_latexmk

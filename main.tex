@@ -1,0 +1,1298 @@
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{kotex}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{cite}
+\usepackage{microtype}
+\usepackage{titlesec}
+\usepackage{siunitx}
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable}
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{pgfplots}
+\usetikzlibrary{calc,positioning}
+\pgfplotsset{compat=1.18}
+
+\definecolor{ajpblue}{RGB}{28, 54, 115}
+\definecolor{ajpsec}{RGB}{54, 95, 145}
+\definecolor{bglight}{RGB}{245, 247, 250}
+\definecolor{boxtitledark}{RGB}{18, 40, 95}
+\definecolor{boxtitleaccent}{RGB}{0, 92, 115}
+
+\setcounter{tocdepth}{2}
+\newcommand{\parhead}[1]{\par\medskip\noindent\textbf{#1}\ignorespaces}
+\newcommand{\tablesection}[1]{\multicolumn{3}{@{}l}{\textit{#1}}\\[-0.1em]}
+
+\sisetup{
+  detect-weight = true,
+  detect-inline-weight = math,
+  table-number-alignment = center,
+  table-format = 2.6,
+}
+
+\setlength{\abovedisplayskip}{10pt plus 4pt minus 2pt}
+\setlength{\belowdisplayskip}{10pt plus 4pt minus 2pt}
+\setlength{\abovedisplayshortskip}{6pt plus 3pt minus 2pt}
+\setlength{\belowdisplayshortskip}{6pt plus 3pt minus 2pt}
+
+\newlength{\simplothgap}
+\setlength{\simplothgap}{0.5cm}
+\pgfplotsset{
+  simplot base/.style={
+    width=0.265\linewidth,
+    height=4.5cm,
+    scale only axis,
+    ticklabel style={font=\tiny},
+    label style={font=\scriptsize},
+    title style={font=\scriptsize},
+    grid=both,
+    grid style={line width=0.2pt, gray!30},
+  },
+  simplot left/.style={
+    simplot base,
+    ylabel style={font=\scriptsize},
+  },
+  simplot inner/.style={
+    simplot base,
+    ylabel={},
+  },
+  simplot xy/.style={
+    width=0.36\linewidth,
+    height=0.36\linewidth,
+    scale only axis,
+    ticklabel style={font=\tiny},
+    label style={font=\scriptsize},
+    title style={font=\scriptsize},
+    grid=both,
+    grid style={line width=0.2pt, gray!30},
+    axis equal image,
+  },
+}
+
+\hypersetup{colorlinks=true, linkcolor=ajpblue, citecolor=ajpsec, urlcolor=ajpblue}
+
+\titleformat{\section}{\large\bfseries\color{ajpblue}}{\thesection}{1em}{}[{\titlerule[0.5pt]}]
+\titleformat{\subsection}{\normalsize\bfseries\color{ajpsec}}{\thesubsection}{1em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\itshape\color{ajpsec}}{\thesubsubsection}{1em}{}
+
+\newtcolorbox{keyformulabox}[1]{
+    colback=white, colframe=ajpblue, boxrule=1.2pt, arc=4pt,
+    colbacktitle=boxtitledark, coltitle=white,
+    left=10pt, right=10pt, top=10pt, bottom=10pt,
+    before skip=10pt, after skip=12pt,
+    fonttitle=\bfseries, title={#1}
+}
+
+\newtcolorbox{derivationbox}[1]{
+    colback=bglight, colframe=ajpblue, arc=4pt, boxrule=1pt, breakable,
+    colbacktitle=boxtitledark, coltitle=white,
+    left=12pt, right=12pt, top=12pt, bottom=12pt,
+    before skip=10pt, after skip=12pt,
+    fonttitle=\bfseries, title={#1}
+}
+
+\newtcolorbox{summarybox}{
+    colback=bglight, colframe=boxtitleaccent, boxrule=1pt,
+    colbacktitle=boxtitleaccent, coltitle=white,
+    title={Physical Interpretation},
+    left=12pt, right=12pt, top=12pt, bottom=12pt,
+    before skip=10pt, after skip=12pt,
+    fonttitle=\bfseries
+}
+
+\title{
+    \vspace{-1.5in}
+    \rule{\linewidth}{1.5pt} \\ \vspace{4mm}
+    \large\textbf{PHYSICS GROUP PROJECT REPORT} \\ \vspace{2mm}
+    \Large\textbf{Mathematical Derivation and Numerical Verification of the EAPEF \\ for Motion on a Surface of Revolution} \\ \vspace{2mm}
+    \large\textit{Timberlake \& Mbenoun, Am.\ J.\ Phys.\ \textbf{94}, 16 (2026)} \\
+    \rule{\linewidth}{1.5pt}
+}
+
+\author{
+    \begin{tabular}{r @{\quad} l}
+        \textbf{Project Group:} & General Physics Team \\[1ex]
+        \textbf{Group Members:} & \hspace{1.5em}Ji-an Kang (강지안) \\[0.4ex]
+                                & \hspace{1.5em}Ji-hoon Park (박지훈) \\[0.4ex]
+                                & \hspace{1.5em}Won-hyuk Choi (최원혁) \\[0.4ex]
+                                & \hspace{1.5em}Young-chan Noh (노영찬) \\[0.4ex]
+                                & \hspace{1.5em}Jae-an Jung (정재안) \\[1ex]
+        \textbf{Course:} & General Physics I \\
+        \textbf{Department:} & Semiconductor Engineering, DGIST
+    \end{tabular}
+}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We derive the effective analogous potential energy function (EAPEF) for a point mass on a frictionless surface of revolution in uniform gravity \cite{ajp2026}, and check the result by explicit Euler integration ($\Delta t=0.005\,\mathrm{s}$, $m=g=1$). The report gives the reduced Lagrangian, conservation of $L_z$, the EAPEF, the radial equation of motion, circular-orbit conditions, and the stability indicator $S(r)=3z'+rz''$.
+
+For the cone $z=r$ and the paraboloid $z=r^2$, turning radii agree with $U_{\mathrm{eq}}=0$ to within $0.04\%$, energy-error scaling with $\Delta t$ is consistent with first-order Euler integration, and the horizontal projection precesses ($\langle\Delta\phi\rangle/(2\pi)=0.80$ and $1.86$ per radial cycle). For the Gaussian profile $z=e^{-r^2}$, the EAPEF has a single zero and the particle escapes outward, in agreement with the analytic prediction.
+\end{abstract}
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+\newpage
+
+% =============================================================================
+\section{Introduction}
+% =============================================================================
+
+Timberlake and Mbenoun \cite{ajp2026} introduce an effective analogous potential $U_{\mathrm{eq}}(r)$ for analyzing motion on a surface of revolution $z=z(r)$ in a uniform gravitational field. This report has two parts: a step-by-step analytic derivation, and numerical integration of the resulting equations.
+
+We study three surfaces:
+\begin{itemize}[leftmargin=1.6em, itemsep=0.35em, topsep=0.4em]
+    \item \textbf{Cone} ($z=r$) and \textbf{paraboloid} ($z=r^2$): each has two zeros of $U_{\mathrm{eq}}(r)$, so the particle oscillates between inner and outer turning radii. We compare predicted and simulated turning points, energy drift, and azimuthal motion.
+    \item \textbf{Gaussian bell} ($z=e^{-r^2}$): the surface slopes downward for $r>0$ and yields only one EAPEF zero. We use this case to test whether the framework correctly predicts outward escape.
+\end{itemize}
+
+Numerical results in Secs.~\ref{sec:numerical}--\ref{sec:results} were obtained with the explicit Euler scheme in Sec.~\ref{sec:simulation} ($\Delta t=0.005\,\mathrm{s}$, $m=g=1$).
+
+% =============================================================================
+\section{Physical Setup and Coordinates}
+% =============================================================================
+
+A point particle of mass $m$ moves without friction on a surface of revolution defined by the holonomic constraint
+\begin{equation}\label{eq:constraint}
+    z = z(r), \qquad r\ge 0,
+\end{equation}
+where $r$ and $\phi$ are cylindrical coordinates and $z$ is the vertical height. Gravity acts uniformly with acceleration $g$ in the $-z$ direction, giving potential energy
+\begin{equation}\label{eq:V}
+    V(r) = mg\,z(r).
+\end{equation}
+No dissipative forces are present. The configuration space is two-dimensional: $(r,\phi)$, with $z$ slaved to $r$ through \eqref{eq:constraint}.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Symbols used throughout. Numerical runs use $m=1\,\mathrm{kg}$, $g=1\,\mathrm{m/s^2}$.}
+    \label{tab:symbols}
+    \begin{tabular}{lll}
+        \toprule
+        Symbol & Meaning & Units \\
+        \midrule
+        $L_z$ & Conserved azimuthal angular momentum & kg\,m$^2$/s \\
+        $E$ & Total mechanical energy & J \\
+        $U_{\mathrm{eq}}(r)$ & Effective analogous potential (EAPEF) & J \\
+        $S(r)$ & Stability indicator $3z'+rz''$ & dimensionless \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+% =============================================================================
+\section{Complete Mathematical Derivation}
+% =============================================================================
+
+This section presents the full derivation chain from cylindrical coordinates to the radial equation and stability criterion.
+
+% --- 3.1 ---
+\subsection{Kinetic Energy in Cylindrical Coordinates}
+\label{sec:kinematic}
+
+\parhead{Setup.}
+Express the kinetic energy $T$ in terms of $(r,\phi,z)$ and their time derivatives.
+
+The position vector in cylindrical coordinates is
+\begin{equation}
+    \mathbf{r} = r\cos\phi\,\hat{\mathbf{x}} + r\sin\phi\,\hat{\mathbf{y}} + z\,\hat{\mathbf{z}}.
+\end{equation}
+Differentiating each component,
+\begin{align}
+    \dot{x} &= \dot{r}\cos\phi - r\dot{\phi}\sin\phi, &
+    \dot{y} &= \dot{r}\sin\phi + r\dot{\phi}\cos\phi, &
+    \dot{z} &= \dot{z}.
+\end{align}
+The squared speed is the sum of squared components:
+\begin{align}
+    \dot{\mathbf{r}}\,^2
+    &= (\dot{r}\cos\phi - r\dot{\phi}\sin\phi)^2
+     + (\dot{r}\sin\phi + r\dot{\phi}\cos\phi)^2
+     + \dot{z}^2.
+\end{align}
+Expanding the first square,
+\begin{equation}
+    (\dot{r}\cos\phi - r\dot{\phi}\sin\phi)^2
+    = \dot{r}^2\cos^2\phi - 2\dot{r}r\dot{\phi}\cos\phi\sin\phi + r^2\dot{\phi}^2\sin^2\phi.
+\end{equation}
+Expanding the second square,
+\begin{equation}
+    (\dot{r}\sin\phi + r\dot{\phi}\cos\phi)^2
+    = \dot{r}^2\sin^2\phi + 2\dot{r}r\dot{\phi}\cos\phi\sin\phi + r^2\dot{\phi}^2\cos^2\phi.
+\end{equation}
+Adding these two expressions, the cross terms cancel:
+\begin{equation}
+    \dot{r}^2(\cos^2\phi+\sin^2\phi) + r^2\dot{\phi}^2(\sin^2\phi+\cos^2\phi)
+    = \dot{r}^2 + r^2\dot{\phi}^2.
+\end{equation}
+Therefore
+\begin{equation}\label{eq:speed2}
+    \dot{\mathbf{r}}\,^2 = \dot{r}^2 + r^2\dot{\phi}^2 + \dot{z}^2,
+\end{equation}
+and the kinetic energy is
+\begin{equation}\label{eq:Tfull}
+    T = \frac{1}{2}m\left(\dot{r}^2 + r^2\dot{\phi}^2 + \dot{z}^2\right).
+\end{equation}
+
+\begin{summarybox}
+Equation \eqref{eq:Tfull} is the starting point before imposing the surface constraint. The azimuthal term $r^2\dot{\phi}^2$ will produce the centrifugal barrier; the vertical term $\dot{z}^2$ will be eliminated using $z=z(r)$.
+\end{summarybox}
+
+% --- 3.2 ---
+\subsection{Constraint Substitution}
+\label{sec:constraint}
+
+\parhead{Setup.}
+Eliminate $\dot{z}$ in favor of $\dot{r}$ using the surface constraint \eqref{eq:constraint}.
+
+Since $z$ depends only on $r$, the chain rule gives
+\begin{equation}\label{eq:zdot}
+    \dot{z} = \frac{dz}{dt} = \frac{dz}{dr}\frac{dr}{dt} = z'(r)\,\dot{r}.
+\end{equation}
+This step is necessary because the particle cannot move independently in $z$; vertical motion is locked to radial motion along the slope of the surface.
+
+Squaring \eqref{eq:zdot},
+\begin{equation}\label{eq:zdot2}
+    \dot{z}^2 = [z'(r)]^2\,\dot{r}^2.
+\end{equation}
+
+% --- 3.3 ---
+\subsection{Reduced Kinetic Energy}
+\label{sec:reducedT}
+
+\parhead{Setup.}
+Obtain $T$ as a function of $(r,\dot{r},\dot{\phi})$ only.
+
+Substitute \eqref{eq:zdot2} into \eqref{eq:Tfull}:
+\begin{align}
+    T
+    &= \frac{1}{2}m\left[\dot{r}^2 + r^2\dot{\phi}^2 + [z'(r)]^2\,\dot{r}^2\right] \nonumber \\
+    &= \frac{1}{2}m\left[\dot{r}^2\left(1 + [z'(r)]^2\right) + r^2\dot{\phi}^2\right].
+    \label{eq:Treduced}
+\end{align}
+
+\parhead{Physical meaning.}
+The factor $1+[z'(r)]^2$ is a \emph{metric correction}: moving a distance $\dot{r}\,dt$ in the radial direction also changes $z$ by $z'\dot{r}\,dt$, so the total path element includes both horizontal and vertical contributions. Effective inertia in the radial direction exceeds $m$ when the surface is steep.
+
+% --- 3.4 ---
+\subsection{Lagrangian Construction}
+\label{sec:lagrangian}
+
+\parhead{Setup.}
+Form $\mathcal{L}=T-V$ for use in the Euler--Lagrange equations.
+
+With $V=mgz(r)$ from \eqref{eq:V} and $T$ from \eqref{eq:Treduced},
+\begin{equation}\label{eq:Lagrangian}
+    \mathcal{L}(r,\dot{r},\phi,\dot{\phi})
+    = \frac{1}{2}m\left\{\dot{r}^2\left(1 + [z'(r)]^2\right) + r^2\dot{\phi}^2\right\}
+      - mg\,z(r).
+\end{equation}
+Note that $\mathcal{L}$ depends on $\phi$ only through $\dot{\phi}$, not explicitly on $\phi$ itself.
+
+% --- 3.5 ---
+\subsection{Conservation of Azimuthal Angular Momentum}
+\label{sec:Lz}
+
+\parhead{Setup.}
+Show that $L_z=mr^2\dot{\phi}$ is a constant of motion.
+
+Because $\partial\mathcal{L}/\partial\phi=0$, the coordinate $\phi$ is \emph{cyclic}. The conjugate momentum is
+\begin{equation}
+    p_\phi = \frac{\partial\mathcal{L}}{\partial\dot{\phi}}
+           = \frac{\partial}{\partial\dot{\phi}}
+             \left(\frac{1}{2}m r^2 \dot{\phi}^2\right)
+           = m r^2 \dot{\phi}.
+\end{equation}
+The Euler--Lagrange equation for $\phi$ is
+\begin{equation}
+    \frac{d}{dt}\left(\frac{\partial\mathcal{L}}{\partial\dot{\phi}}\right)
+    - \frac{\partial\mathcal{L}}{\partial\phi} = 0.
+\end{equation}
+Since $\partial\mathcal{L}/\partial\phi=0$,
+\begin{equation}
+    \frac{d}{dt}(m r^2 \dot{\phi}) = 0
+    \quad\Longrightarrow\quad
+    m r^2 \dot{\phi} = \text{constant}.
+\end{equation}
+We define the conserved azimuthal angular momentum
+\begin{equation}\label{eq:Lz}
+    L_z \equiv m r^2 \dot{\phi},
+\end{equation}
+so that
+\begin{equation}\label{eq:phidot}
+    \dot{\phi} = \frac{L_z}{m r^2}.
+\end{equation}
+
+\parhead{Physical meaning.}
+Rotational symmetry about the $z$ axis implies zero azimuthal torque; therefore $L_z$ is conserved for all surface profiles $z(r)$.
+
+% --- 3.6 ---
+\subsection{Total Energy and the Effective Analogous Potential}
+\label{sec:Ueq}
+
+\parhead{Setup.}
+Reduce the dynamics to a one-dimensional radial problem by eliminating $\dot{\phi}$ and constructing $U_{\mathrm{eq}}(r)$.
+
+Substitute \eqref{eq:phidot} into \eqref{eq:Treduced}:
+\begin{align}
+    T
+    &= \frac{1}{2}m\dot{r}^2\left(1 + [z'(r)]^2\right)
+     + \frac{1}{2}m r^2 \left(\frac{L_z}{m r^2}\right)^2 \nonumber \\
+    &= \frac{1}{2}m\dot{r}^2\left(1 + [z'(r)]^2\right)
+     + \frac{L_z^2}{2m r^2}.
+    \label{eq:TwithLz}
+\end{align}
+Adding $V=mgz(r)$, the total energy is
+\begin{equation}\label{eq:energy}
+    E = \frac{1}{2}m\dot{r}^2\left(1 + [z'(r)]^2\right)
+      + \frac{L_z^2}{2m r^2}
+      + mg\,z(r).
+\end{equation}
+
+\parhead{Isolating $\dot{r}^2$.}
+This step is necessary to interpret radial motion as motion in a one-dimensional potential. Rearranging \eqref{eq:energy}:
+\begin{equation}\label{eq:iso1}
+    \frac{1}{2}m\dot{r}^2\left(1 + [z'(r)]^2\right)
+    = E - \frac{L_z^2}{2m r^2} - mg\,z(r).
+\end{equation}
+Divide both sides by $\tfrac{1}{2}m(1+[z']^2)$:
+\begin{equation}\label{eq:iso2}
+    \dot{r}^2
+    = \frac{2\left[E - \dfrac{L_z^2}{2m r^2} - mg\,z(r)\right]}
+           {m\left(1 + [z'(r)]^2\right)}.
+\end{equation}
+Expand the numerator of \eqref{eq:iso2} by multiplying through by $mr^2$:
+\begin{align}
+    2\left[E - \frac{L_z^2}{2m r^2} - mg\,z(r)\right]
+    &= \frac{2E m r^2 - L_z^2 - 2m r^2 mg z(r)}{m r^2} \nonumber \\
+    &= \frac{2m r^2(E - mg z) - L_z^2}{m r^2}.
+    \label{eq:num}
+\end{align}
+Note that $2m r^2(E-mgz)-L_z^2 = -\left[L_z^2 - 2m r^2(E-mgz)\right]$. Substituting into \eqref{eq:iso2}:
+\begin{equation}
+    \dot{r}^2
+    = \frac{2m r^2(E-mgz) - L_z^2}
+           {m^2 r^2\left(1 + [z'(r)]^2\right)}
+    = \frac{-\left[L_z^2 - 2m r^2\left(E - mg\,z(r)\right)\right]}
+           {m^2 r^2\left(1 + [z'(r)]^2\right)}.
+\end{equation}
+Following Ref.~\cite{ajp2026}, define the EAPEF:
+\begin{keyformulabox}{Effective Analogous Potential (EAPEF)}
+\begin{equation}\label{eq:Ueq}
+    U_{\mathrm{eq}}(r)
+    = \frac{L_z^2 - 2m r^2\left(E - mg\,z(r)\right)}
+           {2m r^2\left(1 + [z'(r)]^2\right)}.
+\end{equation}
+Then
+\begin{equation}\label{eq:Ueq_motion}
+    \dot{r}^2 = -\frac{2U_{\mathrm{eq}}(r)}{m},
+\end{equation}
+so that classically allowed regions satisfy $U_{\mathrm{eq}}(r)\le 0$, and turning points occur at $U_{\mathrm{eq}}(r)=0$.
+\end{keyformulabox}
+
+\begin{summarybox}
+Equation~\eqref{eq:Ueq} is needed because the particle's radial kinetic energy is not $\tfrac{1}{2}m\dot{r}^2$ but $\tfrac{1}{2}m\dot{r}^2(1+[z']^2)$: the surface geometry modifies the effective inertia. It plays the same \emph{conceptual} role as the familiar effective potential $U_{\mathrm{eff}}=L_z^2/(2mr^2)+mgz(r)$ in central-force problems. The centrifugal barrier $L_z^2/(2mr^2)$ and gravitational term $mgz(r)$ appear implicitly inside the numerator, but the denominator $1+[z'(r)]^2$ is the new ingredient absent from standard central-force treatments.
+
+Compared with $U_{\mathrm{eff}}$, the EAPEF enforces the correct turning-point condition $\dot{r}=0$ at $U_{\mathrm{eq}}=0$ while respecting the metric factor. On the cone at $r_0=1.2\,\mathrm{m}$, $U_{\mathrm{eq}}(r_0)=-0.125\,\mathrm{J}$ and $U_{\mathrm{eff}}(r_0)=-0.25\,\mathrm{J}$ at the same $(E_0,L_z)$ illustrate the geometric correction directly.
+\end{summarybox}
+
+% --- 3.7 ---
+\subsection{Radial Equation from the Euler--Lagrange Equation}
+\label{sec:EL}
+
+\parhead{Setup.}
+Derive $\ddot{r}$ as a function of $(r,\dot{r},L_z)$ for numerical integration.
+
+For the non-cyclic coordinate $r$, the Euler--Lagrange equation is
+\begin{equation}\label{eq:EL}
+    \frac{d}{dt}\left(\frac{\partial\mathcal{L}}{\partial\dot{r}}\right)
+    - \frac{\partial\mathcal{L}}{\partial r} = 0.
+\end{equation}
+
+
+\begin{derivationbox}{Euler--Lagrange Derivation of $\ddot{r}$}
+\parhead{Step 1: $\partial\mathcal{L}/\partial\dot{r}$.}
+From \eqref{eq:Lagrangian},
+\begin{equation}
+    \frac{\partial\mathcal{L}}{\partial\dot{r}}
+    = m\dot{r}\left(1 + [z'(r)]^2\right).
+\end{equation}
+Differentiating with respect to time (remembering that $z'=z'(r)$ depends on $r$):
+\begin{align}
+    \frac{d}{dt}\left(1+[z'(r)]^2\right)
+    &= \frac{d}{dr}\left(1+[z'(r)]^2\right)\frac{dr}{dt}
+     = 2z'(r)z''(r)\,\dot{r}.
+\end{align}
+Therefore
+\begin{align}
+    \frac{d}{dt}\left(\frac{\partial\mathcal{L}}{\partial\dot{r}}\right)
+    &= m\ddot{r}\left(1+[z']^2\right)
+     + m\dot{r}\left[2z' z'' \dot{r}\right] \nonumber \\
+    &= m\ddot{r}\left(1+[z']^2\right) + 2m\dot{r}^2 z' z''.
+    \label{eq:dLdrdot}
+\end{align}
+The second term arises because the effective inertia coefficient $1+[z']^2$ changes as the particle moves along the surface.
+
+\parhead{Step 2: $\partial\mathcal{L}/\partial r$.}
+Because $z(r)$, $z'(r)$, and $z''(r)$ all depend on $r$, differentiate \eqref{eq:Lagrangian} term by term (holding $\dot{r}$ and $\dot{\phi}$ fixed in the partial derivative):
+\begin{align}
+    \frac{\partial}{\partial r}\left[\frac{1}{2}m\dot{r}^2\left(1+[z']^2\right)\right]
+    &= \frac{1}{2}m\dot{r}^2 \cdot \frac{d}{dr}\left(1+[z']^2\right)
+     = \frac{1}{2}m\dot{r}^2 \cdot 2z' z''
+     = m\dot{r}^2 z' z'', \\
+    \frac{\partial}{\partial r}\left[\frac{1}{2}m r^2 \dot{\phi}^2\right]
+    &= \frac{L_z^2}{2m}\frac{\partial(r^{-2})}{\partial r}
+     = \frac{L_z^2}{2m}(-2r^{-3})
+     = -\frac{L_z^2}{m r^3}, \\
+    \frac{\partial}{\partial r}\left[-mgz(r)\right]
+    &= -mgz'(r).
+\end{align}
+Summing,
+\begin{equation}\label{eq:dLdr}
+    \frac{\partial\mathcal{L}}{\partial r}
+    = m\dot{r}^2 z' z'' - \frac{L_z^2}{m r^3} - mgz'(r).
+\end{equation}
+The first term is a \emph{geometric force} from the changing slope; the second is the centrifugal term written using $L_z$; the third is gravity projected along the surface.
+
+\parhead{Step 3: Assemble \eqref{eq:EL}.}
+Substituting \eqref{eq:dLdrdot} and \eqref{eq:dLdr} into \eqref{eq:EL}:
+\begin{equation}
+    \underbrace{m\ddot{r}(1+[z']^2) + 2m\dot{r}^2 z' z''}_{d(\partial\mathcal{L}/\partial\dot{r})/dt}
+    - \underbrace{\left(m\dot{r}^2 z' z'' - \frac{L_z^2}{m r^3} - mgz'\right)}_{\partial\mathcal{L}/\partial r} = 0.
+\end{equation}
+Collecting terms:
+\begin{equation}
+    m\ddot{r}(1+[z']^2) + m\dot{r}^2 z' z'' + \frac{L_z^2}{m r^3} + mgz' = 0.
+\end{equation}
+Divide by $m(1+[z']^2)$ (assumption: surface not vertical, so $1+[z']^2\ne 0$):
+\begin{equation}\label{eq:rddot}
+    \ddot{r}
+    = \frac{\dfrac{L_z^2}{m^2 r^3} - g z'(r) - z'(r) z''(r)\,\dot{r}^2}
+           {1 + [z'(r)]^2}.
+\end{equation}
+\end{derivationbox}
+
+\begin{summarybox}
+This radial ODE is the dynamical law integrated in our simulations. The term $L_z^2/(m^2r^3)$ is the azimuthal centripetal requirement: larger $L_z$ or smaller $r$ pushes the particle outward along the surface. The term $-gz'(r)$ is gravity resolved along the surface tangent---on an upward-sloping cone ($z'=1$), it acts to reduce $\ddot{r}$. The term $-z'z''\dot{r}^2$ is purely geometric: it vanishes for a cone ($z''=0$) but becomes significant on the paraboloid ($z''=2$), where large radial speed $\dot{r}$ couples to curvature and modifies the effective radial force. Unlike planar central-force problems, this velocity-dependent correction has no analogue in $U_{\mathrm{eff}}(r)$ alone; it must be retained in the ODE even when $U_{\mathrm{eq}}(r)$ correctly predicts turning points.
+\end{summarybox}
+
+% --- 3.8 ---
+\subsection{Circular Orbit Conditions}
+\label{sec:circular}
+
+\parhead{Setup.}
+Find conditions for a circular orbit at constant radius $r=r_c$.
+
+A circular orbit requires $\dot{r}=0$ and $\ddot{r}=0$ for all time. We apply each condition to a different equation.
+
+\parhead{Condition 1: $U_{\mathrm{eq}}(r_c)=0$ with $\dot{r}=0$.}
+From \eqref{eq:Ueq_motion}, $\dot{r}=0$ requires $U_{\mathrm{eq}}(r_c)=0$:
+\begin{equation}\label{eq:circ_Ueq0}
+    L_z^2 - 2m r_c^2\left[E - mg\,z(r_c)\right] = 0
+    \quad\Longleftrightarrow\quad
+    L_z^2 = 2m r_c^2\left[E - mg\,z(r_c)\right].
+\end{equation}
+Physically, the particle sits on the ``energy surface'' defined by the EAPEF at fixed $r_c$.
+
+\parhead{Condition 2: $\ddot{r}=0$ with $\dot{r}=0$.}
+Setting $\dot{r}=0$ in \eqref{eq:rddot} removes the velocity-dependent curvature term:
+\begin{equation}
+    0 = \frac{L_z^2/(m^2 r_c^3) - g z'(r_c)}{1+[z'(r_c)]^2}
+    \quad\Longrightarrow\quad
+    \frac{L_z^2}{m^2 r_c^3} = g z'(r_c).
+\end{equation}
+This is the radial force balance: azimuthal centripetal requirement equals the component of gravity along the surface. Equivalently,
+\begin{equation}\label{eq:circ_centripetal}
+    L_z^2 = m g r_c^3 z'(r_c).
+\end{equation}
+
+\parhead{Condition 3: Consistency of energy and angular momentum.}
+Equating the right-hand sides of \eqref{eq:circ_Ueq0} and \eqref{eq:circ_centripetal}:
+\begin{equation}
+    2m r_c^2\left[E - mg\,z(r_c)\right] = m g r_c^3 z'(r_c).
+\end{equation}
+Divide by $m r_c^2$:
+\begin{equation}
+    2\left[E - mg\,z(r_c)\right] = g r_c z'(r_c)
+    \quad\Longrightarrow\quad
+    E = mg\,z(r_c) + \frac{mg}{2}\,r_c z'(r_c).
+    \label{eq:circ_E}
+\end{equation}
+Substituting \eqref{eq:circ_E} back into \eqref{eq:circ_centripetal}:
+\begin{equation}
+    L_z^2 = m g r_c^3 z'(r_c)
+    \quad\Longrightarrow\quad
+    L_z = \sqrt{m g r_c^3 z'(r_c)}.
+    \label{eq:Lz_circ}
+\end{equation}
+For $L_z$ to be real with $r_c>0$, we require $z'(r_c)>0$ (surface height increasing with $r$).
+
+\begin{summarybox}
+Equation~\eqref{eq:Lz_circ} specifies the unique angular momentum for which a particle can remain at fixed radius: centrifugal push $L_z^2/(mr_c^3)$ exactly balances the downhill gravitational pull along the surface, $gz'(r_c)$. It is the surface-of-revolution analogue of the circular-orbit speed condition $v=\sqrt{gm/r}$ in horizontal circular motion, but modified by the slope $z'(r_c)$. When the simulated $L_z$ exceeds $L_{z,c}$---as in the paraboloid run ($L_z=5.0$ vs.\ $L_{z,c}=2.036$)---the centrifugal barrier dominates and the orbit develops large radial excursions between the turning radii $1.2000\,\mathrm{m}$ and $2.9459\,\mathrm{m}$.
+\end{summarybox}
+
+% --- 3.9 ---
+\subsection{Stability Criterion for Circular Orbits}
+\label{sec:stability}
+
+\parhead{Setup.}
+Derive the condition under which a circular orbit at $r_c$ is a stable equilibrium of the radial motion.
+
+Stability requires $U_{\mathrm{eq}}'(r_c)=0$ and $U_{\mathrm{eq}}''(r_c)\ge 0$. Write
+\begin{equation}
+    U_{\mathrm{eq}}(r) = \frac{f(r)}{g(r)}, \qquad
+    f(r) = L_z^2 - 2m r^2(E-mgz), \qquad
+    g(r) = 2m r^2(1+[z']^2).
+\end{equation}
+
+
+\begin{derivationbox}{Stability Criterion Derivation}
+\parhead{Step 1: First derivative $f'(r)$.}
+Differentiate $f(r)=L_z^2-2mr^2(E-mgz(r))$ using the product rule on $r^2 z(r)$:
+\begin{equation}
+    f'(r) = -2m\left[2r(E-mgz) + r^2(-mgz')\right]
+          = -4mr(E-mgz) + 2mgr^2 z'(r).
+    \label{eq:fp}
+\end{equation}
+At a circular orbit, $f(r_c)=0$ from \eqref{eq:circ_Ueq0}. The stationarity condition $U_{\mathrm{eq}}'(r_c)=0$ is equivalent to $f'(r_c)=0$ when $f(r_c)=0$. Setting \eqref{eq:fp} to zero at $r=r_c$:
+\begin{equation}
+    -4m r_c(E-mgz_c) + 2m g r_c^2 z'_c = 0
+    \;\Longrightarrow\;
+    E - mgz_c = \frac{mg}{2}r_c z'_c,
+\end{equation}
+which reproduces \eqref{eq:circ_E}.
+
+\parhead{Step 2: Second derivative $f''(r)$.}
+Differentiate \eqref{eq:fp} term by term:
+\begin{align}
+    \frac{d}{dr}[-4mr(E-mgz)]
+    &= -4m(E-mgz) -4mr(-mgz'), \\
+    \frac{d}{dr}[2mgr^2 z']
+    &= 4mgrz' + 2mgr^2 z''.
+\end{align}
+Summing,
+\begin{equation}
+    f''(r) = -4m(E-mgz) + 8mgrz' + 2mgr^2 z''.
+    \label{eq:fpp}
+\end{equation}
+At $r=r_c$, substitute $E-mgz_c = \tfrac{mg}{2}r_c z'_c$:
+\begin{align}
+    f''(r_c)
+    &= -4m\left(\frac{mg}{2}r_c z'_c\right) + 8mg r_c z'_c + 2mg r_c^2 z''_c \nonumber \\
+    &= -2mg r_c z'_c + 8mg r_c z'_c + 2mg r_c^2 z''_c \nonumber \\
+    &= 6mg r_c z'_c + 2mg r_c^2 z''_c.
+\end{align}
+
+\parhead{Step 3: Quotient rule for $U_{\mathrm{eq}}''(r_c)$.}
+With $U_{\mathrm{eq}}=f/g$,
+\begin{equation}
+    U_{\mathrm{eq}}'' = \frac{f''g - fg''}{g^2}.
+\end{equation}
+At $r_c$, both $f(r_c)=0$ and $f'(r_c)=0$, so the $f'g'$ term vanishes and
+\begin{equation}
+    U_{\mathrm{eq}}''(r_c) = \frac{f''(r_c)}{g(r_c)}.
+\end{equation}
+Using $g(r_c)=2mr_c^2(1+[z'_c]^2)$:
+\begin{equation}
+    U_{\mathrm{eq}}''(r_c)
+    = \frac{6mg r_c z'_c + 2mg r_c^2 z''_c}
+           {2m r_c^2(1+[z'_c]^2)}
+    = \frac{g\left(3z'_c + r_c z''_c\right)}
+           {r_c(1+[z'_c]^2)}.
+\end{equation}
+\end{derivationbox}
+
+Stability ($U_{\mathrm{eq}}''(r_c)\ge 0$) with $g>0$ and $r_c>0$ requires
+\begin{keyformulabox}{Circular-Orbit Stability Criterion}
+\begin{equation}\label{eq:stability}
+    3z'(r_c) + r_c z''(r_c) \ge 0.
+\end{equation}
+We define the \emph{stability indicator}
+\begin{equation}\label{eq:S}
+    S(r) \equiv 3z'(r) + r z''(r),
+\end{equation}
+so that circular-orbit stability at $r_c$ is equivalent to $S(r_c)\ge 0$ when $z'(r_c)>0$.
+\end{keyformulabox}
+
+\parhead{Dimensional note on Eq.~\eqref{eq:S}.}
+Because $z(r)$ and $r$ both carry length, the slope $z'=dz/dr$ is dimensionless ($[z']=1$) and the curvature $z''=d^2z/dr^2$ has dimensions $\mathrm{m^{-1}}$. The product $rz''$ is therefore dimensionless, and $S(r)$ is a pure number.
+
+\begin{summarybox}
+This criterion answers whether a circular orbit is a \emph{stable} equilibrium of the radial EAPEF or merely a saddle. When $S(r_c)>0$, small radial displacements increase $U_{\mathrm{eq}}$, producing a restoring tendency and oscillatory radial motion about $r_c$. When $S(r_c)<0$, the EAPEF has a local maximum at $r_c$ and linearized perturbations grow---the circular path is unstable. The indicator depends only on the surface shape $(z',z'')$ at $r_c$, not on $L_z$ or $E$ directly. For the cone, $S=3>0$ everywhere; for the paraboloid at $r_0=1.2\,\mathrm{m}$, $S=9.6>0$; for the Gaussian surface, $S<0$ at $r=1.0\,\mathrm{m}$ and $S>0$ at $r=2.0\,\mathrm{m}$, though $z'<0$ prevents real circular orbits there.
+\end{summarybox}
+
+% =============================================================================
+\section{Dimensional Analysis}
+\label{sec:dimensional}
+% =============================================================================
+
+Every term in the derived equations must carry consistent SI dimensions. With $[m]=\mathrm{kg}$, $[r]=\mathrm{m}$, $[t]=\mathrm{s}$, $[g]=\mathrm{m/s^2}$, and $[z]=\mathrm{m}$ (so $[z']=1$ and $[z'']=1/\mathrm{m}$):
+
+\begin{table}[htbp]
+    \centering
+    \caption{Dimensional verification of key quantities.}
+    \label{tab:dimensional}
+    \begin{tabular}{lll}
+        \toprule
+        Quantity & Dimensions & Consistency check \\
+        \midrule
+        $L_z = mr^2\dot{\phi}$ & $\mathrm{kg\,m^{2}\,s^{-1}}$ & verified \\
+        $E$, $U_{\mathrm{eq}}$, $mgz$ & $\mathrm{J = kg\,m^{2}\,s^{-2}}$ & verified \\
+        $\tfrac{1}{2}m\dot{r}^2(1+[z']^2)$ & $\mathrm{kg\,(m/s)^{2}}$ & kinetic energy \\
+        $L_z^2/(2mr^2)$ & $\mathrm{kg^{2}m^{4}s^{-2}/(kg\,m^{2}) = J}$ & centrifugal term \\
+        $U_{\mathrm{eq}}$ numerator $L_z^2-2mr^2(E-mgz)$ & $\mathrm{J\cdot kg}$ & divided by $2mr^2(1+[z']^2)$ $\Rightarrow$ J \\
+        $\ddot{r}$ in Eq.~\eqref{eq:rddot} & $\mathrm{m/s^{2}}$ & numerator $\div [1+(z')^2]$ \\
+        $S(r)=3z'+rz''$ & dimensionless & $[z']=1$, $[z'']= \mathrm{m^{-1}}$, $[rz'']=1$ \\
+        $L_{z,c}=\sqrt{mgr_c^3 z'}$ & kg$\cdot$m$^2$/s & verified when $z'>0$ \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The EAPEF has the same dimensions as energy because it is constructed from $E$, $L_z^2/(mr^2)$, and $mgz(r)$, all energy-scaled quantities, with the dimensionless metric factor $1+[z']^2$ in the denominator. The stability indicator $S(r)=3z'+rz''$ is dimensionless: $z'$ is a slope (length over length) and $rz''$ is the product of a length with inverse length.
+
+% =============================================================================
+\section{Numerical Integration and Error Analysis}
+\label{sec:numerical}
+% =============================================================================
+
+\subsection{From Derived Equations to Simulation}
+\label{sec:simulation}
+
+The integration scheme applies Eqs.~\eqref{eq:rddot} and \eqref{eq:phidot} directly:
+\begin{enumerate}[leftmargin=2em, itemsep=0.7em, topsep=0.5em, label=\textbf{\arabic*.}]
+    \item \textbf{State variables.}
+    The dynamical state is $(r,\,\dot{r},\,\phi)$. For each run, $(L_z,E_0)$ are fixed from the initial state; $E_0$ serves as the reference for energy monitoring.
+
+    \item \textbf{Surface evaluation.}
+    At the current $r$, evaluate analytically
+    \begin{equation*}
+        z=z(r),\qquad z'=\frac{dz}{dr},\qquad z''=\frac{d^2z}{dr^2}.
+    \end{equation*}
+    Closed forms are used for each profile rather than numerical differentiation.
+
+    \item \textbf{Radial acceleration.}
+    With $m=g=1$, Eq.~\eqref{eq:rddot} becomes
+    \begin{equation}\label{eq:accel_num}
+        \ddot{r} = \frac{L_z^2/r^3 - z' - z' z'' \dot{r}^2}{1+(z')^2}.
+    \end{equation}
+
+    \item \textbf{Explicit Euler updates.}
+    With fixed time step $\Delta t=0.005\,\mathrm{s}$:
+    \begin{align}
+        \dot{r}_{n+1} &= \dot{r}_n + \ddot{r}_n\,\Delta t, \\
+        r_{n+1}       &= r_n + \dot{r}_{n+1}\,\Delta t, \\
+        \phi_{n+1}    &= \phi_n + \frac{L_z}{r_n^2}\,\Delta t.
+        \label{eq:euler}
+    \end{align}
+    This first-order scheme is not symplectic and does not conserve energy exactly.
+
+    \item \textbf{Energy monitoring.}
+    After each step, independently compute
+    \begin{equation*}
+        E_t = \tfrac{1}{2}(1+z'^2)\dot{r}^2 + \frac{L_z^2}{2r^2} + z
+    \end{equation*}
+    and $\delta_E=|E_t-E_0|/|E_0|\times 100\%$. Because $E_t$ is not fed back into the integrator, agreement between $E_0$ and $E_t$ validates the ODE implementation.
+
+    \item \textbf{Turning-point detection.}
+    Periapsis events are identified when $\dot{r}$ changes sign from non-positive to positive. The radial half-period $\Delta T_r$ is the time between consecutive such events; $T_a=2\pi\Delta T_r/\Delta\phi$ follows from the recorded $\Delta\phi$.
+\end{enumerate}
+
+\subsection{Truncation Error and Energy Drift}
+\label{sec:error}
+
+\parhead{Why explicit Euler violates energy conservation.}
+The exact system is Hamiltonian: $E$ is conserved by the continuous-time flow and Liouville's theorem guarantees phase-space volume preservation. Explicit Euler replaces the true trajectory by a first-order Taylor expansion over each step; it is not symplectic, so it neither preserves $E$ exactly nor the canonical phase-space area. This introduces local truncation error $\mathcal{O}(\Delta t^2)$ per step and global energy error $\mathcal{O}(\Delta t)$ over fixed physical time.
+
+\parhead{Why the paraboloid shows larger drift than the cone.}
+Table~\ref{tab:dt_halving} lists the maximum $\delta_E$ obtained in each run. At $\Delta t=0.005\,\mathrm{s}$, the cone reaches $\max\delta_E=0.108\%$ while the paraboloid reaches $0.440\%$.
+
+Two effects contribute. The paraboloid orbit spans a larger radial range ($\Delta r\approx 1.75\,\mathrm{m}$ vs.\ $\Delta r\approx 0.94\,\mathrm{m}$ on the cone), so the particle samples regions where $z''\dot{r}^2$ and the metric factor $1+4r^2$ vary more strongly. In addition, the curvature term $-z'z''\dot{r}^2$ in Eq.~\eqref{eq:rddot} vanishes on the cone ($z''=0$) but remains active on the paraboloid ($z''=2$).
+
+\parhead{Time-step halving.}
+Halving $\Delta t$ from $0.005\,\mathrm{s}$ to $0.0025\,\mathrm{s}$ reduces maximum $\delta_E$ by approximately 50\%, consistent with $\mathcal{O}(\Delta t)$ scaling:
+
+\begin{table}[htbp]
+    \centering
+    \caption{Energy drift vs.\ time step for bounded runs.}
+    \label{tab:dt_halving}
+    \sisetup{table-format=2.6}
+    \begin{tabular}{l
+        S[table-format=1.4]
+        S[table-format=2.6]
+        S[table-format=2.6]
+        S[table-format=1.2]}
+        \toprule
+        {Surface} & {$\Delta t$ (s)} & {$\max\delta_E$ (\%)} & {Final $\delta_E$ (\%)} & {Ratio} \\
+        \midrule
+        Cone & 0.005 & 0.107507 & 0.005038 & 1.00 \\
+        Cone & 0.0025 & 0.053847 & 0.002498 & 0.50 \\
+        Paraboloid & 0.005 & 0.440049 & 0.292182 & 1.00 \\
+        Paraboloid & 0.0025 & 0.221535 & 0.148280 & 0.50 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The near-factor-of-two reduction confirms that observed drift is dominated by Euler truncation rather than errors in the ODE implementation. A log--log scan over $\Delta t\in\{0.01,0.005,0.0025,0.001\}\,\mathrm{s}$ yields fitted slopes $0.997$ (cone) and $0.990$ (paraboloid); see Fig.~\ref{fig:dt_scaling} and Sec.~\ref{sec:results}.
+
+\subsection{Comparison with Timberlake and Mbenoun (2026)}
+\label{sec:paper_compare}
+
+Table~\ref{tab:paper_compare} compares the principal claims of Ref.~\cite{ajp2026} with our numerical results.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Paper claims vs.\ project verification.}
+    \label{tab:paper_compare}
+    \small
+    \begin{tabular}{p{4.2cm}p{4.5cm}c}
+        \toprule
+        Paper claim \cite{ajp2026} & Project verification & Match? \\
+        \midrule
+        EAPEF $U_{\mathrm{eq}}(r)$ with metric factor $1+[z']^2$ & Derived Eq.~\eqref{eq:Ueq}; $U_{\mathrm{eq}}(r_0)$ for cone, paraboloid, Gaussian & Yes \\
+        Turning points at $U_{\mathrm{eq}}=0$ & Cone/paraboloid: $\le 0.043\%$ error; Gaussian: single root $\Rightarrow$ escape & Yes \\
+        Stability $3z'+rz''\ge 0$ for stable circular orbits & $S(r_0)=3.0$ (cone), $9.6$ (paraboloid); Gaussian: $z'<0$ & Yes \\
+        $L_z=\sqrt{mgr^3 z'}$ for circular orbits & $L_{z,c}=1.315$ (cone), $2.036$ (paraboloid) at $r_0=1.2\,\mathrm{m}$ & Yes \\
+        Radial motion from conserved $E$ and $L_z$ & Bounded: $\delta_E\le 0.44\%$; Gaussian: escape confirmed & Yes \\
+        EAPEF superior to $U_{\mathrm{eff}}$ for curved surfaces & $U_{\mathrm{eq}}\ne U_{\mathrm{eff}}$ at same $r_0$ (cone: $-0.125$ vs.\ $-0.25\,\mathrm{J}$) & Yes \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Every claim listed above is supported by the analytic derivation in Sec.~3 and the numerical results in Sec.~\ref{sec:results}.
+
+% =============================================================================
+\section{Quantitative Analysis of Dynamical Quantities}
+\label{sec:analysis}
+% =============================================================================
+
+This section defines the quantities plotted and tabulated in Sec.~\ref{sec:results}. Each subsection states the formula with $m=g=1$ and the procedure used to obtain the numerical values.
+
+Table~\ref{tab:analysis_map} lists each quantity, its defining equation in this section, and the figure or table in Sec.~\ref{sec:results} where it appears.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Quantities defined in Sec.~\ref{sec:analysis} and where they are reported in Sec.~\ref{sec:results}.}
+    \label{tab:analysis_map}
+    \small
+    \renewcommand{\arraystretch}{1.28}
+    \setlength{\tabcolsep}{7pt}
+    \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.2cm} >{\raggedright\arraybackslash}p{4.8cm} >{\raggedright\arraybackslash}p{4.6cm}@{}}
+        \toprule
+        Quantity & Defining equation(s) & Reported in \\
+        \midrule
+        $U_{\mathrm{eq}}(r)$, $U_{\mathrm{eff}}(r)$ & Eqs.~\eqref{eq:Ueq_num}--\eqref{eq:Ueff_num} & Fig.~\ref{fig:ueq_all}; turning-point count \\
+        $S(r)$ & Eq.~\eqref{eq:S_num} & Table~\ref{tab:bounded_results}; Sec.~\ref{sec:limit_escape} \\
+        $L_{z,c}$ & Eq.~\eqref{eq:Lzc_num} & Table~\ref{tab:bounded_results} \\
+        Turning radii & Eqs.~\eqref{eq:turning_analytic}--\eqref{eq:turning_err} & Table~\ref{tab:bounded_results} \\
+        $\delta_E$ & Eqs.~\eqref{eq:Et_num}--\eqref{eq:deltaE_num} & Figs.~\ref{fig:energy_all}, \ref{fig:dt_scaling}; Tables~\ref{tab:bounded_results}, \ref{tab:dt_halving} \\
+        $\Delta T_r$, $T_a/T_r$, $\langle\Delta\phi\rangle/(2\pi)$ & Eqs.~\eqref{eq:Tr_num}--\eqref{eq:closure_residual} & Table~\ref{tab:bounded_results}; Fig.~\ref{fig:xy_precession} \\
+        $L_{z,\mathrm{num}}$ & Eq.~\eqref{eq:Lz_num} & Sec.~\ref{sec:azimuth} \\
+        Escape time & $t$ when $r>10\,\mathrm{m}$ & Table~\ref{tab:gauss_limit} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Subsections~\ref{sec:analysis_Ueq}--\ref{sec:analysis_Lzcheck} follow the order of Table~\ref{tab:analysis_map}. Analytic formulas use closed-form $z(r)$ and its derivatives; simulation values are taken directly from the integration output without post-hoc fitting.
+
+\subsection{Effective Analogous Potential $U_{\mathrm{eq}}(r)$}
+\label{sec:analysis_Ueq}
+
+For fixed initial energy $E_0$ and angular momentum $L_z$, the EAPEF profile is evaluated from Eq.~\eqref{eq:Ueq} with $m=g=1$:
+\begin{equation}\label{eq:Ueq_num}
+    U_{\mathrm{eq}}(r)
+    = \frac{L_z^2 - 2r^2\bigl(E_0 - z(r)\bigr)}
+           {2r^2\bigl(1 + [z'(r)]^2\bigr)}.
+\end{equation}
+For comparison with the uncorrected effective potential, we also plot
+\begin{equation}\label{eq:Ueff_num}
+    U_{\mathrm{eff}}(r) = \frac{L_z^2}{2r^2} + z(r) - E_0.
+\end{equation}
+On a uniform radial grid $0.05\le r\le r_{\max}$ with $\Delta r=0.0005\,\mathrm{m}$ ($r_{\max}=3.5\,\mathrm{m}$ for cone/paraboloid, $4.0\,\mathrm{m}$ for Gaussian), Eqs.~\eqref{eq:Ueq_num}--\eqref{eq:Ueff_num} are evaluated using closed-form $z(r)$, $z'(r)$, and $z''(r)$. A turning radius $r_t$ is recorded when $U_{\mathrm{eq}}(r)$ changes sign across consecutive grid points.
+
+\subsection{Stability Indicator $S(r)$}
+\label{sec:analysis_S}
+
+The dimensionless stability indicator from Eq.~\eqref{eq:S} is evaluated analytically on the same $r$ grid:
+\begin{equation}\label{eq:S_num}
+    S(r) = 3z'(r) + r\,z''(r).
+\end{equation}
+At a candidate circular radius $r_c$, local stability of the radial EAPEF requires $S(r_c)\ge 0$ when $z'(r_c)>0$ (Eq.~\eqref{eq:stability}). This quantity appears in Table~\ref{tab:bounded_results} at $r=r_0$.
+
+\subsection{Circular-Orbit Angular Momentum}
+\label{sec:analysis_Lzc}
+
+When $z'(r_c)>0$, the angular momentum compatible with a circular orbit at radius $r_c$ is, from Eq.~\eqref{eq:Lz_circ} with $m=g=1$,
+\begin{equation}\label{eq:Lzc_num}
+    L_{z,c}(r_c) = \sqrt{r_c^3\,z'(r_c)}.
+\end{equation}
+Values at $r_0=1.2\,\mathrm{m}$ are compared with the simulated $L_z$ (paraboloid: $L_z=5.0>L_{z,c}=2.036$).
+
+\subsection{Turning Points}
+\label{sec:analysis_turning}
+
+\parhead{Analytic prediction.}
+Turning radii satisfy the radial turning-point condition inherited from Eq.~\eqref{eq:Ueq_motion}:
+\begin{equation}\label{eq:turning_analytic}
+    U_{\mathrm{eq}}(r_t) = 0
+    \quad\Longleftrightarrow\quad
+    L_z^2 - 2r_t^2\bigl(E_0 - z(r_t)\bigr) = 0.
+\end{equation}
+Two distinct roots $r_{t,\mathrm{in}}<r_{t,\mathrm{out}}$ indicate bounded radial motion; a single root indicates outward escape on the Gaussian surface.
+
+\parhead{Simulation observation.}
+From the full $r(t)$ trajectory, we record $r_{\min}$ and $r_{\max}$ over the integration window. Periapsis events (inner turning points) are detected when $\dot{r}$ changes from non-positive to positive. Relative error is
+\begin{equation}\label{eq:turning_err}
+    \varepsilon_r = \frac{|r_{\mathrm{obs}}-r_{\mathrm{pred}}|}{r_{\mathrm{pred}}}\times 100\%.
+\end{equation}
+Reported cone/paraboloid agreements are $\le 0.043\%$ (Table~\ref{tab:bounded_results}).
+
+\subsection{Energy Monitoring}
+\label{sec:analysis_energy}
+
+After each integration step, total energy is \emph{recomputed} from the reduced form of Eq.~\eqref{eq:energy} with $m=g=1$:
+\begin{equation}\label{eq:Et_num}
+    E_t = \frac{1}{2}\bigl(1+[z'(r)]^2\bigr)\dot{r}^2
+        + \frac{L_z^2}{2r^2}
+        + z(r),
+\end{equation}
+using the simulated $(r,\dot{r})$ and analytic $z'(r)$. The reference value $E_0$ is fixed from the initial state. Relative drift is
+\begin{equation}\label{eq:deltaE_num}
+    \delta_E(t) = \frac{|E_t - E_0|}{|E_0|}\times 100\%.
+\end{equation}
+Because explicit Euler does not enforce $E_t=E_0$, $\max\delta_E$ over the run quantifies integrator truncation error (Sec.~\ref{sec:dt_scaling}, Table~\ref{tab:dt_halving}). $E_t$ is never fed back into the integrator.
+
+\subsection{Radial and Azimuthal Periods}
+\label{sec:analysis_periods}
+
+\parhead{Radial half-period.}
+Between successive periapsis events at times $t_{k-1}$ and $t_k$,
+\begin{equation}\label{eq:Tr_num}
+    \Delta T_r = t_k - t_{k-1}.
+\end{equation}
+
+\parhead{Azimuthal advance and effective azimuthal period.}
+Over the same interval, the azimuthal advance is $\Delta\phi_k = \phi(t_k)-\phi(t_{k-1})$. The corresponding azimuthal period estimate is
+\begin{equation}\label{eq:Ta_num}
+    T_a = \frac{2\pi\,\Delta T_r}{\Delta\phi},
+    \qquad
+    \frac{T_a}{\Delta T_r} = \frac{2\pi}{\Delta\phi}.
+\end{equation}
+The mean $\langle\Delta\phi\rangle$ per radial cycle and the ratio $\langle\Delta\phi\rangle/(2\pi)$ are recorded at each periapsis. Measured values $0.804$ (cone) and $1.864$ (paraboloid) are not integer multiples of $2\pi$, so the horizontal projection does not close (Fig.~\ref{fig:xy_precession}). The closure residual
+\begin{equation}\label{eq:closure_residual}
+    \left|\frac{\Delta\phi}{2\pi} - \mathrm{round}\!\left(\frac{\Delta\phi}{2\pi}\right)\right|
+\end{equation}
+quantifies how far each radial cycle falls from closing in the horizontal plane.
+
+\subsection{Angular Momentum Check}
+\label{sec:analysis_Lzcheck}
+
+The reduced equations hold $L_z$ fixed. As a numerical consistency check, each step records
+\begin{equation}\label{eq:Lz_num}
+    L_{z,\mathrm{num}} = r^2\,\frac{\Delta\phi}{\Delta t}
+\end{equation}
+from the $\phi$ increment at each step and compares it with the nominal $L_z$. Relative deviations remain below $10^{-9}\%$ on bounded runs, so the observed energy drift is due to Euler truncation rather than loss of $L_z$.
+
+Sec.~\ref{sec:results} applies these definitions: Sec.~\ref{sec:bounded} reports the cone and paraboloid results in Table~\ref{tab:bounded_results}; Sec.~\ref{sec:limit_escape} treats the Gaussian escape runs in Table~\ref{tab:gauss_limit}.
+
+% =============================================================================
+\section{Results}
+\label{sec:results}
+% =============================================================================
+
+Sec.~\ref{sec:bounded} presents detailed results for the cone and paraboloid: turning-point errors, energy drift, period ratios, and azimuthal precession (Fig.~\ref{fig:xy_precession}). Sec.~\ref{sec:limit_escape} treats the Gaussian surface $z=e^{-r^2}$, for which the EAPEF has a single zero and the particle escapes outward. Figs.~\ref{fig:ueq_all}--\ref{fig:phase_all} compare all three surfaces side by side.
+
+\subsection{Simulation Figures}
+\label{sec:graphs}
+
+The figures below were generated from the Euler integration in Sec.~\ref{sec:simulation}. Each time series was subsampled to at most 320 points per curve for plotting.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      name=ueqA, simplot left,
+      title={Cone ($z=r$)},
+      xlabel={$r$ (m)}, ylabel={$U$ (J)},
+      xmin=0.55, xmax=2.0, ymin=-0.35, ymax=0.35,
+      legend style={font=\tiny, at={(0.03,0.97)}, anchor=north west},
+    ]
+      \addplot[ajpblue, line width=0.6pt] table[col sep=tab, x=r, y=ueq] {plot_data/cone_ueq.dat};
+      \addlegendentry{$U_{\mathrm{eq}}$}
+      \addplot[ajpsec, dashed, line width=0.6pt] table[col sep=tab, x=r, y=ueff] {plot_data/cone_ueq.dat};
+      \addlegendentry{$U_{\mathrm{eff}}$}
+      \addplot[gray, dotted, domain=0.55:2.0] {0};
+      \draw[gray!60, dashed] (axis cs:0.6643,-0.35) -- (axis cs:0.6643,0.35);
+      \draw[gray!60, dashed] (axis cs:1.6025,-0.35) -- (axis cs:1.6025,0.35);
+    \end{axis}
+    \begin{axis}[
+      at={($(ueqA.outer east)+(\simplothgap,0)$)}, anchor=outer west,
+      name=ueqB, simplot inner,
+      title={Paraboloid ($z=r^2$)},
+      xlabel={$r$ (m)},
+      xmin=1.0, xmax=3.2, ymin=-0.3, ymax=0.5,
+    ]
+      \addplot[ajpblue, line width=0.6pt] table[col sep=tab, x=r, y=ueq] {plot_data/paraboloid_ueq.dat};
+      \addplot[ajpsec, dashed, line width=0.6pt] table[col sep=tab, x=r, y=ueff] {plot_data/paraboloid_ueq.dat};
+      \addplot[gray, dotted, domain=1.0:3.2] {0};
+      \draw[gray!60, dashed] (axis cs:1.2000,-0.3) -- (axis cs:1.2000,0.5);
+      \draw[gray!60, dashed] (axis cs:2.9463,-0.3) -- (axis cs:2.9463,0.5);
+    \end{axis}
+    \begin{axis}[
+      at={($(ueqB.outer east)+(\simplothgap,0)$)}, anchor=outer west,
+      simplot inner,
+      title={Gaussian ($z=e^{-r^2}$, IC-1)},
+      xlabel={$r$ (m)},
+      xmin=0.5, xmax=3.5, ymin=-0.2, ymax=0.6,
+    ]
+      \addplot[ajpblue, line width=0.6pt] table[col sep=tab, x=r, y=ueq] {plot_data/gaussian_ueq.dat};
+      \addplot[ajpsec, dashed, line width=0.6pt] table[col sep=tab, x=r, y=ueff] {plot_data/gaussian_ueq.dat};
+      \addplot[gray, dotted, domain=0.5:3.5] {0};
+      \draw[gray!60, dashed] (axis cs:1.4907,-0.2) -- (axis cs:1.4907,0.6);
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Effective analogous potential $U_{\mathrm{eq}}(r)$ and uncorrected $U_{\mathrm{eff}}(r)$ at fixed $(E_0,L_z)$. Cone and paraboloid (left/center): two $U_{\mathrm{eq}}=0$ roots bracket a radial oscillation band. Gaussian (right): a single root and outward escape.}
+  \label{fig:ueq_all}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      name=rtA, simplot left,
+      title={Cone},
+      xlabel={$t$ (s)}, ylabel={$r$ (m)},
+      xmin=0, xmax=100, ymin=0.6, ymax=1.7,
+    ]
+      \addplot[ajpblue, line width=0.6pt] table[col sep=tab, x=t, y=r] {plot_data/cone_rt.dat};
+    \end{axis}
+    \begin{axis}[
+      at={($(rtA.outer east)+(\simplothgap,0)$)}, anchor=outer west,
+      name=rtB, simplot inner,
+      title={Paraboloid},
+      xlabel={$t$ (s)},
+      xmin=0, xmax=100, ymin=1.0, ymax=3.0,
+    ]
+      \addplot[ajpblue, line width=0.6pt] table[col sep=tab, x=t, y=r] {plot_data/paraboloid_rt.dat};
+    \end{axis}
+    \begin{axis}[
+      at={($(rtB.outer east)+(\simplothgap,0)$)}, anchor=outer west,
+      simplot inner,
+      title={Gaussian IC-1},
+      xlabel={$t$ (s)},
+      xmin=0, xmax=17, ymin=1.4, ymax=10.5,
+    ]
+      \addplot[ajpblue, line width=0.6pt] table[col sep=tab, x=t, y=r] {plot_data/gaussian_rt.dat};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Radial coordinate $r(t)$ ($\Delta t=0.005\,\mathrm{s}$). Cone and paraboloid: periodic oscillation between turning radii. Gaussian IC-1: monotonic escape at $t=16.315\,\mathrm{s}$.}
+  \label{fig:rt_all}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      name=enA, simplot left,
+      title={Cone},
+      xlabel={$t$ (s)}, ylabel={$\Delta E$ (J)},
+      xmin=0, xmax=100, ymin=-0.0022, ymax=0.0013,
+      scaled y ticks=false,
+      /pgf/number format/fixed,
+      /pgf/number format/precision=3,
+    ]
+      \addplot[ajpblue, line width=0.5pt] table[col sep=tab, x=t, y=dE] {plot_data/cone_energy.dat};
+      \addplot[gray, dotted, domain=0:100] {0};
+    \end{axis}
+    \begin{axis}[
+      at={($(enA.outer east)+(\simplothgap,0)$)}, anchor=outer west,
+      name=enB, simplot inner,
+      title={Paraboloid},
+      xlabel={$t$ (s)},
+      xmin=0, xmax=100, ymin=-0.046, ymax=0.010,
+      scaled y ticks=false,
+      /pgf/number format/fixed,
+      /pgf/number format/precision=2,
+    ]
+      \addplot[ajpblue, line width=0.5pt] table[col sep=tab, x=t, y=dE] {plot_data/paraboloid_energy.dat};
+      \addplot[gray, dotted, domain=0:100] {0};
+    \end{axis}
+    \begin{axis}[
+      at={($(enB.outer east)+(\simplothgap,0)$)}, anchor=outer west,
+      simplot inner,
+      title={Gaussian IC-1},
+      xlabel={$t$ (s)},
+      xmin=0, xmax=17, ymin=-0.00015, ymax=0.00010,
+      scaled y ticks=false,
+      /pgf/number format/fixed,
+      /pgf/number format/precision=5,
+    ]
+      \addplot[ajpblue, line width=0.5pt] table[col sep=tab, x=t, y=dE] {plot_data/gaussian_energy.dat};
+      \addplot[gray, dotted, domain=0:17] {0};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Energy deviation $\Delta E=E(t)-E(0)$. Cone and paraboloid: $\max\delta_E=0.11\%$ and $0.44\%$. The Gaussian panel uses a magnified vertical scale; escape trajectories are not characterized by periodic energy oscillation.}
+  \label{fig:energy_all}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      name=psA, simplot left,
+      title={Cone},
+      xlabel={$r$ (m)}, ylabel={$\dot{r}$ (m/s)},
+      xmin=0.6, xmax=1.7, ymin=-0.55, ymax=0.55,
+    ]
+      \addplot[ajpblue, line width=0.25pt, mark=none] table[col sep=tab, x=r, y=vr] {plot_data/cone_phase.dat};
+    \end{axis}
+    \begin{axis}[
+      at={($(psA.outer east)+(\simplothgap,0)$)}, anchor=outer west,
+      name=psB, simplot inner,
+      title={Paraboloid},
+      xlabel={$r$ (m)},
+      xmin=1.0, xmax=3.0, ymin=-0.75, ymax=0.75,
+    ]
+      \addplot[ajpblue, line width=0.25pt, mark=none] table[col sep=tab, x=r, y=vr] {plot_data/paraboloid_phase.dat};
+    \end{axis}
+    \begin{axis}[
+      at={($(psB.outer east)+(\simplothgap,0)$)}, anchor=outer west,
+      simplot inner,
+      title={Gaussian IC-1},
+      xlabel={$r$ (m)},
+      xmin=1.5, xmax=10.0, ymin=0.06, ymax=0.57,
+    ]
+      \addplot[ajpblue, line width=0.4pt, mark=none] table[col sep=tab, x=r, y=vr] {plot_data/gaussian_phase.dat};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Phase-space trajectories $(r,\dot{r})$. Cone and paraboloid: closed loops between turning radii. Gaussian IC-1: monotonic escape branch.}
+  \label{fig:phase_all}
+\end{figure}
+
+\subsection{Bounded Motion}
+\label{sec:bounded}
+
+The cone $z=r$ and paraboloid $z=r^2$ each have two zeros of $U_{\mathrm{eq}}(r)$, confining the particle between inner and outer turning radii. Table~\ref{tab:bounded_results} summarizes the initial conditions, turning-point agreement, periodicity, and energy drift ($m=g=1$, $\Delta t=0.005\,\mathrm{s}$).
+
+\begin{table}[htbp]
+    \centering
+    \caption{Bounded-motion results: cone and paraboloid ($m=g=1$, $\Delta t=0.005\,\mathrm{s}$).}
+    \label{tab:bounded_results}
+    \small
+    \renewcommand{\arraystretch}{1.22}
+    \setlength{\tabcolsep}{8pt}
+    \sisetup{table-format=1.4}
+    \begin{tabular}{@{} l S[table-format=1.4] S[table-format=1.4] @{}}
+        \toprule
+        {Quantity} & {Cone ($z=r$)} & {Paraboloid ($z=r^2$)} \\
+        \midrule
+        \tablesection{Initial conditions}
+        $r_0$ (m) & 1.2 & 1.2 \\
+        $\dot{r}_0$ (m/s) & 0.5 & 0 \\
+        $L_z$ (kg\,m$^2$/s) & 1.0 & 5.0 \\
+        $t_{\max}$ (s) & 100 & 100 \\
+        \addlinespace[0.25em]
+        \tablesection{Energy and EAPEF at $t=0$}
+        $E_0$ (J) & 1.7972 & 10.1206 \\
+        $\max\delta_E$ (\%) & 0.1075 & 0.4400 \\
+        Final $\delta_E$ (\%) & 0.0050 & 0.2922 \\
+        $U_{\mathrm{eq}}(r_0)$ (J) & -0.1250 & 0 \\
+        $U_{\mathrm{eff}}(r_0)$ (J) & -0.2500 & 0 \\
+        $S(r_0)$ & 3.0 & 9.6 \\
+        $L_{z,c}(r_0)$ (kg\,m$^2$/s) & 1.3145 & 2.0365 \\
+        \addlinespace[0.25em]
+        \tablesection{Turning radii: prediction vs.\ simulation}
+        Inner $r_t$ pred.\ (m) & 0.6643 & 1.2000 \\
+        Inner $r_t$ obs.\ (m) & 0.6646 & 1.2000 \\
+        Inner rel.\ error (\%) & 0.0326 & 0 \\
+        Outer $r_t$ pred.\ (m) & 1.6025 & 2.9463 \\
+        Outer $r_t$ obs.\ (m) & 1.6018 & 2.9459 \\
+        Outer rel.\ error (\%) & 0.0433 & 0.0122 \\
+        \addlinespace[0.25em]
+        \tablesection{Periodic radial dynamics}
+        $r_{\min}$ (m) & 0.6646 & 1.2000 \\
+        $r_{\max}$ (m) & 1.6018 & 2.9459 \\
+        Periapsis count & 18 & 11 \\
+        $\Delta T_r$ (s) & 5.540 & 9.885 \\
+        $\langle\Delta\phi\rangle/(2\pi)$ & 0.8043 & 1.8644 \\
+        $T_a/T_r$ & 1.244 & 0.5364 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsubsection{Energy Drift and Time-Step Scaling}
+\label{sec:dt_scaling}
+
+Explicit Euler introduces $\mathcal{O}(\Delta t)$ global energy error on bounded orbits (Sec.~\ref{sec:error}, Table~\ref{tab:dt_halving}). At $\Delta t=0.005\,\mathrm{s}$, the paraboloid's wider radial excursion ($\Delta r\approx 1.75$ m) and active curvature term $z'z''\dot{r}^2$ in Eq.~\eqref{eq:rddot} yield $\max\delta_E=0.440\%$, four times the cone value ($0.108\%$). Halving $\Delta t$ halves $\max\delta_E$ to good approximation.
+
+Using the same initial conditions, integrations to $t=100\,\mathrm{s}$ were repeated at $\Delta t\in\{0.01,0.005,0.0025,0.001\}\,\mathrm{s}$. Fig.~\ref{fig:dt_scaling} plots $\log_{10}(\max\delta_E)$ versus $\log_{10}(\Delta t)$; least-squares slopes are $0.997$ (cone) and $0.990$ (paraboloid).
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      width=0.72\linewidth, height=5cm,
+      xlabel={$\log_{10}(\Delta t\,/\mathrm{s})$},
+      ylabel={$\log_{10}(\max\delta_E)$},
+      legend style={font=\scriptsize, at={(0.03,0.03)}, anchor=south west},
+      grid=both, grid style={line width=0.2pt, gray!30},
+    ]
+      \addplot[ajpblue, mark=*, mark size=1.2pt, line width=0.6pt]
+        table[col sep=tab, x=logDt, y=logErr] {plot_data/cone_dt_scaling.dat};
+      \addlegendentry{Cone (slope $0.997$)}
+      \addplot[ajpsec, mark=square*, mark size=1.2pt, line width=0.6pt]
+        table[col sep=tab, x=logDt, y=logErr] {plot_data/paraboloid_dt_scaling.dat};
+      \addlegendentry{Paraboloid (slope $0.990$)}
+      \addplot[gray, dashed, domain=-3:-1] {0.997 * x + 1.03};
+      \addplot[gray, dashed, domain=-3:-1] {0.990 * x + 0.64};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Log--log plot of maximum energy drift vs.\ time step for bounded runs. Slopes near unity confirm first-order Euler scaling (Table~\ref{tab:dt_halving}).}
+  \label{fig:dt_scaling}
+\end{figure}
+
+\subsubsection{Azimuthal Precession}
+\label{sec:azimuth}
+
+Between consecutive periapsis events, the simulation records $\Delta\phi$ and $\Delta T_r$. Mean values $\langle\Delta\phi\rangle/(2\pi)=0.804$ (cone) and $1.864$ (paraboloid) show that each radial cycle advances the azimuth by a non-integer multiple of $2\pi$, so the horizontal projection precesses ($T_a/T_r=1.244$ and $0.536$; Fig.~\ref{fig:xy_precession}). Angular momentum is preserved to better than $10^{-9}\%$, so the energy drift is due to the integrator rather than loss of $L_z$.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      name=xyA, simplot xy,
+      title={Cone: top view $(x,y)$},
+      xlabel={$x$ (m)}, ylabel={$y$ (m)},
+      xmin=-1.75, xmax=1.75, ymin=-1.75, ymax=1.75,
+    ]
+      \addplot[ajpblue, line width=0.35pt, mark=none]
+        table[col sep=tab, x=x, y=y] {plot_data/cone_xy.dat};
+      \addplot[ajpsec, only marks, mark=*, mark size=1.1pt]
+        table[col sep=tab, x=x, y=y] {plot_data/cone_peri.dat};
+      \addplot[gray, dashed, line width=0.4pt] coordinates {(0,0) (1.75,0)};
+    \end{axis}
+    \begin{axis}[
+      at={($(xyA.outer east)+(0.8cm,0)$)}, anchor=outer west,
+      simplot xy,
+      title={Paraboloid: top view $(x,y)$},
+      xlabel={$x$ (m)}, ylabel={$y$ (m)},
+      xmin=-3.15, xmax=3.15, ymin=-3.15, ymax=3.15,
+    ]
+      \addplot[ajpblue, line width=0.35pt, mark=none]
+        table[col sep=tab, x=x, y=y] {plot_data/paraboloid_xy.dat};
+      \addplot[ajpsec, only marks, mark=*, mark size=1.1pt]
+        table[col sep=tab, x=x, y=y] {plot_data/paraboloid_peri.dat};
+      \addplot[gray, dashed, line width=0.4pt] coordinates {(0,0) (3.15,0)};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Horizontal-plane projection $(x,y)=(r\cos\phi,r\sin\phi)$ over $t=100\,\mathrm{s}$. Blue curves: trajectory; orange markers: periapsis events. Successive radial cycles do not overlap in angle ($\langle\Delta\phi\rangle/(2\pi)=0.804$ cone, $1.864$ paraboloid).}
+  \label{fig:xy_precession}
+\end{figure}
+
+\begin{summarybox}
+\begin{itemize}[leftmargin=1.5em, itemsep=0.45em, topsep=0.2em]
+    \item \textbf{Cone} (left panels of Figs.~\ref{fig:ueq_all}--\ref{fig:phase_all}): $U_{\mathrm{eq}}<0$ between $r=0.6643\,\mathrm{m}$ and $r=1.6025\,\mathrm{m}$. Turning radii match $U_{\mathrm{eq}}=0$ to $\le 0.043\%$; $\max\delta_E=0.108\%$. The $(r,\dot{r})$ portrait is a closed loop, and the top view in Fig.~\ref{fig:xy_precession} precesses with $\langle\Delta\phi\rangle/(2\pi)=0.804$ per radial cycle.
+    \item \textbf{Paraboloid} (center panels): with $L_z=5.0>L_{z,c}=2.036$, the orbit spans $r\in[1.20,2.95]\,\mathrm{m}$. Outer turning radius agrees to $0.012\%$; $\max\delta_E=0.44\%$ is the largest among bounded runs. The wider $(x,y)$ trace in Fig.~\ref{fig:xy_precession} reflects stronger azimuthal advance ($\langle\Delta\phi\rangle/(2\pi)=1.864$).
+\end{itemize}
+\end{summarybox}
+
+\subsection{Unbounded Motion on the Gaussian Surface}
+\label{sec:limit_escape}
+
+For the Gaussian profile $z(r)=e^{-r^2}$, the surface slopes downward for $r>0$ ($z'<0$), so $L_{z,c}=\sqrt{r^3 z'(r)}$ is not real. A parameter scan over 28\,665 initial conditions finds no case with two $U_{\mathrm{eq}}$ zeros; every trial has exactly one root. Both escape runs in Table~\ref{tab:gauss_limit} show monotonic outward growth to $r>10\,\mathrm{m}$ with no periapsis recurrence.
+
+\begin{table}[htbp]
+    \centering
+    \caption{Gaussian escape runs: single-root EAPEF and outward motion ($m=g=1$, $\Delta t=0.005\,\mathrm{s}$).}
+    \label{tab:gauss_limit}
+    \small
+    \renewcommand{\arraystretch}{1.22}
+    \setlength{\tabcolsep}{8pt}
+    \sisetup{table-format=1.4}
+    \begin{tabular}{@{} l S[table-format=1.4] S[table-format=1.4] @{}}
+        \toprule
+        {Quantity} & {IC-1} & {IC-2} \\
+        \midrule
+        $r_0$ (m) & 1.5 & 1.0 \\
+        $\dot{r}_0$ (m/s) & 0.08 & 0 \\
+        $L_z$ (kg\,m$^2$/s) & 0.45 & 0.25 \\
+        $t_{\max}$ (s) & 20 & 15 \\
+        $E_0$ (J) & 0.1539 & 0.3991 \\
+        $U_{\mathrm{eq}}(r_0)$ (J) & -0.0032 & 0 \\
+        $U_{\mathrm{eq}}$ zero (m) & 1.4907 & 1.0000 \\
+        $S(r_0)$ & 0.1581 & -1.4715 \\
+        Escape time (s) & 16.315 & 10.985 \\
+        $r_{\max}$ reached (m) & 10.0013 & 10.0021 \\
+        Bounded? (2 roots) & \multicolumn{2}{c}{No (1 root each)} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{summarybox}
+On a downhill surface with $z'<0$, the EAPEF admits only one turning radius. IC-1 crosses $U_{\mathrm{eq}}=0$ at $r=1.4907\,\mathrm{m}$ and escapes at $t=16.3\,\mathrm{s}$; IC-2 starts on that root ($U_{\mathrm{eq}}(r_0)=0$, $\dot{r}_0=0$) yet immediately departs because circular force balance is impossible when gravity pulls along a descending tangent. Figs.~\ref{fig:ueq_all}--\ref{fig:phase_all} (right panels) show the single EAPEF zero and the monotonic escape branch.
+\end{summarybox}
+
+% =============================================================================
+\section{Discussion}
+\label{sec:discussion}
+% =============================================================================
+
+Our results fall into two groups: quantitative comparison for bounded cone and paraboloid orbits, and a qualitative check of escape on the Gaussian surface. The same integration scheme is used throughout; only the surface profile $z(r)$ changes.
+
+\parhead{Cone and paraboloid.}
+On the cone ($z'=1$, $z''=0$), the metric factor $1+[z']^2=2$ is constant and the curvature term in Eq.~\eqref{eq:rddot} vanishes. Turning radii $0.6643\,\mathrm{m}$ and $1.6025\,\mathrm{m}$ bracket a narrow band ($\Delta r\approx 0.94\,\mathrm{m}$) with $\max\delta_E=0.108\%$ and a precessing horizontal projection ($T_a/T_r=1.244$; Fig.~\ref{fig:xy_precession}, left). On the paraboloid, the larger radial excursion ($\Delta r\approx 1.75\,\mathrm{m}$) and active $z'z''\dot{r}^2$ coupling raise $\max\delta_E$ to $0.440\%$ at the same $\Delta t$, yet turning points still agree to $0.012\%$. Log--log slopes $0.997$ and $0.990$ (Fig.~\ref{fig:dt_scaling}) indicate that the larger drift on the paraboloid reflects orbit amplitude and Euler truncation, not a failure of the EAPEF ODE.
+
+\parhead{Gaussian escape.}
+The Gaussian bell was included to test whether a surface with $z'<0$ and a single $U_{\mathrm{eq}}$ zero produces outward escape, as the analytic framework predicts. Both runs in Table~\ref{tab:gauss_limit} reach $r>10\,\mathrm{m}$ within 11--16 s with no periapsis recurrence, consistent with the absence of an outer turning wall.
+
+\parhead{Summary.}
+The EAPEF correctly predicts turning radii at the 0.04\% level on bounded orbits and identifies escape when only one root exists. Energy drift on bounded runs scales as $\mathcal{O}(\Delta t)$ and remains below $0.5\%$ at $\Delta t=0.005\,\mathrm{s}$. Because explicit Euler is not symplectic, $(r,\dot{r})$ phase areas can distort even while $L_z$ is preserved to round-off precision.
+
+% =============================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+% =============================================================================
+
+This study derived and numerically checked the EAPEF framework for motion on a surface of revolution \cite{ajp2026}.
+
+\parhead{Derivation.}
+We obtained the reduced Lagrangian, proved $L_z$ conservation, derived $U_{\mathrm{eq}}(r)$ and the radial ODE, and established the circular-orbit condition $L_{z,c}=\sqrt{mgr_c^3 z'(r_c)}$ and stability criterion $S(r)=3z'+rz''\ge 0$ (Table~\ref{tab:dimensional}, Sec.~\ref{sec:stability}).
+
+\parhead{Numerical results.}
+Explicit Euler integration yielded turning-point agreement at the 0.04\% level on the cone and paraboloid, period ratios $T_a/T_r=1.244$ and $0.536$, azimuthal precession $\langle\Delta\phi\rangle/(2\pi)=0.804$ and $1.864$ per radial cycle (Fig.~\ref{fig:xy_precession}), and energy drifts below $0.44\%$ over 100 s (Table~\ref{tab:bounded_results}, Fig.~\ref{fig:dt_scaling}).
+
+\parhead{Gaussian escape.}
+For $z=e^{-r^2}$, the EAPEF has a single zero and both initial conditions in Table~\ref{tab:gauss_limit} lead to outward escape, as predicted analytically.
+
+\parhead{Comparison with Ref.~\cite{ajp2026}.}
+Table~\ref{tab:paper_compare} shows agreement with the principal claims tested here. On the cone, $U_{\mathrm{eq}}\ne U_{\mathrm{eff}}$ at the same initial state illustrates the improvement over the uncorrected effective potential on curved surfaces.
+
+\parhead{Limitations.}
+Explicit Euler introduces $\mathcal{O}(\Delta t)$ energy drift on bounded orbits (Table~\ref{tab:dt_halving}, Fig.~\ref{fig:dt_scaling}) and is not symplectic. Paraboloid orbits with large radial amplitude show the largest absolute $|E(t)-E(0)|$ among the bounded runs.
+
+\parhead{Extensions.}
+Higher-order or symplectic integrators could reduce energy drift while keeping the same ODE. Other profiles such as $z(r)=r^3$ or piecewise surfaces would further test the stability indicator; friction or time-dependent surfaces $z(r,t)$ lie outside the present conservative framework.
+
+Within the tested parameter ranges, the agreement between $U_{\mathrm{eq}}$ predictions and simulated orbits supports the EAPEF as a valid Newtonian description of surface-of-revolution dynamics.
+
+% =============================================================================
+\begin{thebibliography}{99}
+\bibitem{ajp2026}
+T.~K.~Timberlake and R.~Mbenoun,
+``Analyzing motion on a surface of revolution using the effective analogous potential energy function,''
+\textit{Am.\ J.\ Phys.} \textbf{94}, 16 (2026).
+
+\bibitem{textbook}
+J.~B.~Marion and S.~T.~Thornton,
+\textit{Classical Dynamics of Particles and Systems}, 5th ed.\ (Brooks/Cole, 2003).
+\end{thebibliography}
+
+\end{document}
