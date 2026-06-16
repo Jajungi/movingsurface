@@ -1,90 +1,125 @@
 # 회전면 위 입자 운동 — EAPEF 유도 및 수치 검증
 
-**General Physics I Group Project** · DGIST 반도체공학과 · 2026
+**DGIST · 반도체공학과 · General Physics I · 2026**
 
-**GitHub:** https://github.com/Jajungi/movingsurface
+**Repository:** https://github.com/Jajungi/movingsurface
 
-> Timberlake & Mbenoun, *Am. J. Phys.* **94**, 16 (2026) 논문의 **유효 아날로그 퍼텐셜 에너지 함수(EAPEF)** 를 회전면 위 마찰 없는 입자 운동에 적용하고, 이론 유도와 수치 적분 결과를 비교·검증한 프로젝트입니다.
+---
+
+회전 대칭 곡면 위에서 마찰 없이 미끄러지는 질점의 운동을 분석하는 프로젝트입니다.  
+Timberlake & Mbenoun (*Am. J. Phys.* **94**, 16, 2026)이 제안한 **EAPEF**(Effective Analogous Potential Energy Function, 유효 아날로그 퍼텐셜)를 직접 유도하고, 웹 시뮬레이터와 수치 적분으로 이론 예측을 검증합니다.
+
+## 무엇을 다루나요?
+
+중력 아래 회전면 `z = z(r)` 위 질점은 두 자유도 `(r, φ)`로 기술됩니다. 축대칭성 덕분에 **각운동량 `Lz`가 보존**되므로, 2차원 문제를 **1차원 방사 방정식**으로 줄일 수 있습니다.
+
+| 단계 | 내용 |
+|------|------|
+| 1. 라그랑지안 | 원통좌표에서 운동에너지·중력 퍼텐셜로 축소 라그랑지안 구성 |
+| 2. EAPEF | `U_eq(r)` — 방사 운동을 1D 퍼텐셜 문제처럼 해석 |
+| 3. 궤도 분석 | 원운동 조건, 전환점(turning point), 안정성 지표 `S(r) = 3z' + rz''` |
+| 4. 수치 검증 | 명시적 Euler 적분 (`Δt = 0.005 s`, `m = g = 1`)으로 이론과 비교 |
+
+### 분석한 세 곡면
+
+| 곡면 | `z(r)` | 물리적 특징 |
+|------|--------|-------------|
+| **원뿔** | `αr` | EAPEF에 영점 2개 → 안·밖 전환점 사이 방사 진동, 수평 투영은 **세차(precession)** |
+| **포물면** | `αr²` | 전환점·에너지 보존·`Δt` 수렴을 정량적으로 검증 |
+| **가우시안** | `e^(-r²)` | EAPEF 영점 1개 → 바깥으로 **이탈(escape)** 예측과 시뮬레이션 일치 |
 
 ## 팀원
 
-| 이름 | 영문 |
-|------|------|
+| | |
+|---|---|
 | 강지안 | Ji-an Kang |
 | 박지훈 | Ji-hoon Park |
 | 최원혁 | Won-hyuk Choi |
 | 노영찬 | Young-chan Noh |
 | 정재안 | Jae-an Jung |
 
-## 프로젝트 개요
-
-균일 중력장 아래 회전면 \(z = z(r)\) 위를 움직이는 질점에 대해:
-
-- 축대칭 각운동량 \(L_z\) 보존을 이용한 **축소 라그랑지안** 유도
-- **EAPEF** \(U_{\mathrm{eq}}(r)\) 및 방사 방향 운동 방정식
-- 원운동 조건 및 안정성 지표 \(S(r) = 3z' + rz''\)
-- 명시적 Euler 적분(\(\Delta t = 0.005\,\mathrm{s}\), \(m = g = 1\))으로 수치 검증
-
-다음 세 곡면을 분석합니다.
-
-| 곡면 | 형태 | 주요 결과 |
-|------|------|-----------|
-| **원뿔** | \(z = \alpha r\) | EAPEF 두 영점 → 방사 방향 진동, 수평면 투영의 세차 |
-| **포물면** | \(z = \alpha r^2\) | 전환점·에너지 보존·\(\Delta t\) 수렴 검증 |
-| **가우시안** | \(z = e^{-r^2}\) | EAPEF 단일 영점 → 바깥으로 이탈 예측과 일치 |
-
 ## 저장소 구조
 
 ```
-├── index.html              # 3D 인터랙티브 시뮬레이터 (Three.js)
-├── main.tex                # 보고서 LaTeX 원본
-├── compile.ps1             # PDF 빌드 스크립트 (Windows / MiKTeX)
-├── simulate.mjs            # 배치 시뮬레이션 엔진
-├── run_final_sims.mjs      # 보고서용 최종 수치 실험 실행
-├── export_pgfplots.mjs     # sim_results.json → plot_data/*.dat
-├── build_standalone_tex.mjs # 단일 파일 output/main.tex 생성
-├── plot_data/              # pgfplots용 그래프 데이터
-└── output/                 # 빌드 결과 (main.tex, main.pdf)
+movingsurface/
+├── simulator/
+│   └── index.html          # 3D 인터랙티브 시뮬레이터 (Three.js)
+├── report/
+│   ├── main.tex            # 보고서 LaTeX 원본
+│   ├── plot_data/          # pgfplots 그래프용 데이터 (.dat)
+│   └── output/             # 빌드 결과 (main.tex, main.pdf)
+├── scripts/
+│   ├── simulate.mjs        # 공통 수치 적분 엔진
+│   ├── run_final_sims.mjs  # 보고서용 배치 실험 → data/sim_results.json
+│   ├── export_pgfplots.mjs # JSON → report/plot_data/*.dat
+│   ├── build_standalone_tex.mjs  # 단일 파일 report/output/main.tex 생성
+│   ├── run_report_sims.mjs # 가우시안 등 보조 실험
+│   ├── find_gaussian.mjs   # 초기조건 탐색 유틸
+│   └── compile.ps1         # PDF 빌드 (MiKTeX)
+├── data/
+│   └── sim_results.json    # 배치 시뮬레이션 원본 결과
+├── compile.ps1             # 루트에서 PDF 빌드 실행
+└── README.md
 ```
 
-## 빠른 시작
+## 웹 시뮬레이터
 
-### 1. 웹 시뮬레이터
+`simulator/index.html`을 브라우저에서 열면 됩니다. 별도 설치 없이 동작합니다.
 
-브라우저에서 `index.html`을 열면 됩니다. 별도 설치 없이 동작합니다 (Three.js는 CDN 로드).
+**주요 기능**
 
-- 곡면 종류·계수 \(\alpha\), 초기 반지름 \(r_0\), 각운동량 \(L_z\), 초기 방사 속도 \(v_{r0}\) 조절
-- 3D 궤적, EAPEF·\(U_e\) 비교, 방위·진동 주기, 에너지 보존 오차 실시간 표시
-- **원운동 설계 가이드**: 입력 \(r_0\)에서 원운동에 필요한 \(L_z\) 자동 계산
+- **곡면 선택** — 원뿔, 포물면, 3차 곡면, 역수 곡면, 반구형 그릇
+- **초기조건 조절** — `α`, `r₀`, `Lz`, 초기 방사 속도 `vr₀`
+- **실시간 분석** — EAPEF vs 일반 유효 퍼텐셜, 방위·진동 주기, 에너지 보존 오차
+- **3D 시각화** — 입자 궤적, 회전면, 궤적 선 on/off
+- **원운동 가이드** — 입력 `r₀`에서 원운동에 필요한 `Lz` 자동 계산 및 원클릭 적용
 
-### 2. 보고서 PDF 빌드
+시뮬레이터와 `scripts/`의 배치 스크립트는 **동일한 물리 엔진**(Euler, `dt = 0.005`)을 사용합니다.
+
+## 보고서 PDF 빌드
 
 **필요 환경:** [Node.js](https://nodejs.org/), [MiKTeX](https://miktex.org/) (Windows)
 
-```powershell
-# 수치 결과 재생성 (선택)
-node run_final_sims.mjs
-node export_pgfplots.mjs
+프로젝트 루트에서 실행:
 
-# standalone .tex 생성 + PDF 컴파일
+```powershell
+# 1) 수치 실험 재실행 (선택 — plot_data를 갱신할 때)
+node scripts/run_final_sims.mjs
+node scripts/export_pgfplots.mjs
+
+# 2) standalone .tex 생성 + PDF 컴파일
 .\compile.ps1
 ```
 
-결과물: `output/main.pdf`, `output/main.tex` (LMS .tex 제출용)
+**결과물**
 
-## 제출물 (LMS)
-
-| 항목 | 파일 |
+| 파일 | 설명 |
 |------|------|
-| 보고서 PDF (5–7쪽) | `output/main.pdf` |
-| LaTeX 소스 | `output/main.tex` (또는 `main.tex`) |
-| 설명 영상 (약 5분) | 별도 녹화·업로드 |
-| GitHub 링크 | 아래 저장소 URL을 보고서에 기재 |
+| `report/output/main.pdf` | 최종 보고서 PDF |
+| `report/output/main.tex` | 그래프 데이터가 내장된 단일 LaTeX 파일 |
+
+`report/main.tex`는 `plot_data/`를 외부 참조하는 **개발용 원본**이고, `report/output/main.tex`는 제출·공유용 **독립 빌드**입니다.
+
+## 데이터 파이프라인
+
+```
+scripts/run_final_sims.mjs
+        ↓
+   data/sim_results.json
+        ↓
+scripts/export_pgfplots.mjs
+        ↓
+   report/plot_data/*.dat
+        ↓
+scripts/build_standalone_tex.mjs  +  scripts/compile.ps1
+        ↓
+   report/output/main.pdf
+```
 
 ## 참고 문헌
 
 - C. Timberlake & M. Mbenoun, “Motion on a surface of revolution,” *Am. J. Phys.* **94**, 16–24 (2026).
 
-## 라이선스
+---
 
-DGIST 일반물리 I 과제용 학술 프로젝트입니다.
+*DGIST General Physics I 학술 프로젝트*

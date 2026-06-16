@@ -1,14 +1,17 @@
 /**
- * Export pgfplots-compatible .dat files from sim_results.json
- * Run: node export_pgfplots.mjs
- *
- * Trajectory .dat files are decimated to PLOT_MAX_POINTS so pdflatex/Overleaf
- * stays fast; increase PLOT_MAX_POINTS if you compile locally and want smoother curves.
+ * Export pgfplots-compatible .dat files from data/sim_results.json
+ * Run from project root: node scripts/export_pgfplots.mjs
  */
 import { readFileSync, mkdirSync, writeFileSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const d = JSON.parse(readFileSync('sim_results.json', 'utf8'));
-mkdirSync('plot_data', { recursive: true });
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const plotDir = path.join(root, 'report', 'plot_data');
+const simResultsPath = path.join(root, 'data', 'sim_results.json');
+
+const d = JSON.parse(readFileSync(simResultsPath, 'utf8'));
+mkdirSync(plotDir, { recursive: true });
 
 /** Max points per trajectory series written for pgfplots (compile-time knob) */
 const PLOT_MAX_POINTS = 320;
@@ -110,13 +113,13 @@ for (const { key, prefix } of cases) {
 
   const ueq = filterUeq(buildUeqProfile(run, type, UEQ_EXPORT_DR), type);
   writeFileSync(
-    `plot_data/${prefix}_ueq.dat`,
+    path.join(plotDir, `${prefix}_ueq.dat`),
     'r\tueq\tueff\n' + ueq.map((p) => `${p.r}\t${p.ueq}\t${p.ueff}`).join('\n'),
   );
 
   const rtRows = decimateSeries(run.timeSeriesSample);
   writeFileSync(
-    `plot_data/${prefix}_rt.dat`,
+    path.join(plotDir, `${prefix}_rt.dat`),
     't\tr\n' + rtRows.map((p) => `${p.t}\t${p.r}`).join('\n'),
   );
 
@@ -126,11 +129,11 @@ for (const { key, prefix } of cases) {
     const errPct = Math.abs(dE / E0) * 100;
     return `${p.t}\t${dE.toFixed(8)}\t${errPct.toFixed(6)}`;
   });
-  writeFileSync(`plot_data/${prefix}_energy.dat`, 't\tdE\terrPct\n' + energyRows.join('\n'));
+  writeFileSync(path.join(plotDir, `${prefix}_energy.dat`), 't\tdE\terrPct\n' + energyRows.join('\n'));
 
   const phaseRows = decimateSeries(run.phaseSpaceSample);
   writeFileSync(
-    `plot_data/${prefix}_phase.dat`,
+    path.join(plotDir, `${prefix}_phase.dat`),
     'r\tvr\n' + phaseRows.map((p) => `${p.r}\t${p.vr}`).join('\n'),
   );
 
@@ -140,13 +143,13 @@ for (const { key, prefix } of cases) {
     return { x, y };
   });
   writeFileSync(
-    `plot_data/${prefix}_xy.dat`,
+    path.join(plotDir, `${prefix}_xy.dat`),
     'x\ty\n' + xyPoints.map((p) => `${p.x}\t${p.y}`).join('\n'),
   );
 
   if (run.periapsisLog?.length) {
     writeFileSync(
-      `plot_data/${prefix}_peri.dat`,
+      path.join(plotDir, `${prefix}_peri.dat`),
       'x\ty\n'
         + run.periapsisLog
           .map((p) => `${(p.r * Math.cos(p.phi)).toFixed(4)}\t${(p.r * Math.sin(p.phi)).toFixed(4)}`)
@@ -177,7 +180,7 @@ for (const { key, prefix } of cases) {
   };
 }
 
-writeFileSync('plot_data/meta.json', JSON.stringify(meta, null, 2));
+writeFileSync(path.join(plotDir, 'meta.json'), JSON.stringify(meta, null, 2));
 
 // Log-log dt scaling
 if (d.dt_scaling_study) {
@@ -188,10 +191,10 @@ if (d.dt_scaling_study) {
       (r) => `${r.dt}\t${r.maxEnergyErrPct}\t${Math.log10(r.dt)}\t${Math.log10(r.maxEnergyErrPct)}`,
     );
     writeFileSync(
-      `plot_data/${key}_dt_scaling.dat`,
+      path.join(plotDir, `${key}_dt_scaling.dat`),
       'dt\tmaxErrPct\tlogDt\tlogErr\n' + rows.join('\n'),
     );
   }
 }
 
-console.log(`Wrote plot_data/*.dat (trajectory plots decimated to <=${PLOT_MAX_POINTS} points)`);
+console.log(`Wrote report/plot_data/*.dat (trajectory plots decimated to <=${PLOT_MAX_POINTS} points)`);

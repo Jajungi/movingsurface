@@ -3,6 +3,10 @@
  * Physics engine: explicit Euler, dt=0.005, m=g=1 (matches index.html)
  */
 import { writeFileSync } from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 function surface(type, rad, alpha = 1) {
   switch (type) {
@@ -310,5 +314,5 @@ const results = {
   },
 };
 
-writeFileSync('sim_results.json', JSON.stringify(results, null, 2));
+writeFileSync(path.join(root, 'data', 'sim_results.json'), JSON.stringify(results, null, 2));
 console.log(JSON.stringify(results, null, 2));

@@ -1,17 +1,18 @@
 /**
- * Merge root main.tex + plot_data/*.dat into a single self-contained output/main.tex.
- * Run: node build_standalone_tex.mjs
+ * Merge report/main.tex + report/plot_data/*.dat into report/output/main.tex.
+ * Run from project root: node scripts/build_standalone_tex.mjs
  */
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const root = path.dirname(fileURLToPath(import.meta.url));
-const plotDir = path.join(root, "plot_data");
-const outDir = path.join(root, "output");
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+const reportDir = path.join(root, "report");
+const plotDir = path.join(reportDir, "plot_data");
+const outDir = path.join(reportDir, "output");
 const outPath = path.join(outDir, "main.tex");
 
-const mainTex = fs.readFileSync(path.join(root, "main.tex"), "utf8");
+const mainTex = fs.readFileSync(path.join(reportDir, "main.tex"), "utf8");
 const datRefRe = /\{plot_data\/([^}]+\.dat)\}/g;
 const files = [...new Set([...mainTex.matchAll(datRefRe)].map((m) => m[1]))].sort();
 
@@ -45,9 +46,9 @@ let standalone = mainTex.replace(
 standalone = standalone.replace(datRefRe, (_, file) => `\\${macroName(file)}`);
 
 const header = [
-  "% Standalone LaTeX source — pdflatex main.tex (from the output/ folder).",
-  "% Auto-generated from ../main.tex + ../plot_data/ — regenerate with:",
-  "%   node build_standalone_tex.mjs",
+  "% Standalone LaTeX source — pdflatex main.tex (from report/output/).",
+  "% Auto-generated from report/main.tex + report/plot_data/ — regenerate with:",
+  "%   node scripts/build_standalone_tex.mjs",
   "",
 ].join("\n");
 
