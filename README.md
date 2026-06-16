@@ -2,7 +2,7 @@
 
 **General Physics I Group Project** · DGIST 반도체공학과 · 2026
 
-**GitHub:** `https://github.com/<username>/<repo>` ← 저장소 생성 후 실제 URL로 교체하세요.
+**GitHub:** `https://github.com/Jajungi/movingsurface`
 
 > Timberlake & Mbenoun, *Am. J. Phys.* **94**, 16 (2026) 논문의 **유효 아날로그 퍼텐셜 에너지 함수(EAPEF)** 를 회전면 위 마찰 없는 입자 운동에 적용하고, 이론 유도와 수치 적분 결과를 비교·검증한 프로젝트입니다.
 
