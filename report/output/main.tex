@@ -90,7 +90,7 @@
     colback=white, colframe=ajpblue, boxrule=1.2pt, arc=4pt,
     colbacktitle=boxtitledark, coltitle=white,
     left=10pt, right=10pt, top=10pt, bottom=10pt,
-    before skip=10pt, after skip=12pt,
+    before skip=18pt, after skip=20pt,
     fonttitle=\bfseries, title={#1}
 }
 
@@ -98,7 +98,7 @@
     colback=bglight, colframe=ajpblue, arc=4pt, boxrule=1pt, breakable,
     colbacktitle=boxtitledark, coltitle=white,
     left=12pt, right=12pt, top=12pt, bottom=12pt,
-    before skip=10pt, after skip=12pt,
+    before skip=18pt, after skip=20pt,
     fonttitle=\bfseries, title={#1}
 }
 
@@ -107,7 +107,7 @@
     colbacktitle=boxtitleaccent, coltitle=white,
     title={Physical Interpretation},
     left=12pt, right=12pt, top=12pt, bottom=12pt,
-    before skip=10pt, after skip=12pt,
+    before skip=18pt, after skip=20pt,
     fonttitle=\bfseries
 }
 
@@ -4743,11 +4743,11 @@ Table~\ref{tab:analysis_map} lists each quantity, its defining equation in this 
         Quantity & Defining equation(s) & Reported in \\
         \midrule
         $U_{\mathrm{eq}}(r)$, $U_{\mathrm{eff}}(r)$ & Eqs.~\eqref{eq:Ueq_num}--\eqref{eq:Ueff_num} & Fig.~\ref{fig:ueq_all}; turning-point count \\
-        $S(r)$ & Eq.~\eqref{eq:S_num} & Table~\ref{tab:bounded_results}; Sec.~\ref{sec:limit_escape} \\
-        $L_{z,c}$ & Eq.~\eqref{eq:Lzc_num} & Table~\ref{tab:bounded_results} \\
-        Turning radii & Eqs.~\eqref{eq:turning_analytic}--\eqref{eq:turning_err} & Table~\ref{tab:bounded_results} \\
-        $\delta_E$ & Eqs.~\eqref{eq:Et_num}--\eqref{eq:deltaE_num} & Figs.~\ref{fig:energy_all}, \ref{fig:dt_scaling}; Tables~\ref{tab:bounded_results}, \ref{tab:dt_halving} \\
-        $\Delta T_r$, $T_a/T_r$, $\langle\Delta\phi\rangle/(2\pi)$ & Eqs.~\eqref{eq:Tr_num}--\eqref{eq:closure_residual} & Table~\ref{tab:bounded_results}; Fig.~\ref{fig:xy_precession} \\
+        $S(r)$ & Eq.~\eqref{eq:S_num} & Table~\ref{tab:bounded_setup}; Sec.~\ref{sec:limit_escape} \\
+        $L_{z,c}$ & Eq.~\eqref{eq:Lzc_num} & Table~\ref{tab:bounded_setup} \\
+        Turning radii & Eqs.~\eqref{eq:turning_analytic}--\eqref{eq:turning_err} & Table~\ref{tab:bounded_orbits} \\
+        $\delta_E$ & Eqs.~\eqref{eq:Et_num}--\eqref{eq:deltaE_num} & Figs.~\ref{fig:energy_all}, \ref{fig:dt_scaling}; Tables~\ref{tab:bounded_setup}, \ref{tab:dt_halving} \\
+        $\Delta T_r$, $T_a/T_r$, $\langle\Delta\phi\rangle/(2\pi)$ & Eqs.~\eqref{eq:Tr_num}--\eqref{eq:closure_residual} & Table~\ref{tab:bounded_orbits}; Fig.~\ref{fig:xy_precession} \\
         $L_{z,\mathrm{num}}$ & Eq.~\eqref{eq:Lz_num} & Sec.~\ref{sec:azimuth} \\
         Escape time & $t$ when $r>10\,\mathrm{m}$ & Table~\ref{tab:gauss_limit} \\
         \bottomrule
@@ -4778,7 +4778,7 @@ The dimensionless stability indicator from Eq.~\eqref{eq:S} is evaluated analyti
 \begin{equation}\label{eq:S_num}
     S(r) = 3z'(r) + r\,z''(r).
 \end{equation}
-At a candidate circular radius $r_c$, local stability of the radial EAPEF requires $S(r_c)\ge 0$ when $z'(r_c)>0$ (Eq.~\eqref{eq:stability}). This quantity appears in Table~\ref{tab:bounded_results} at $r=r_0$.
+At a candidate circular radius $r_c$, local stability of the radial EAPEF requires $S(r_c)\ge 0$ when $z'(r_c)>0$ (Eq.~\eqref{eq:stability}). This quantity appears in Table~\ref{tab:bounded_setup} at $r=r_0$.
 
 \subsection{Circular-Orbit Angular Momentum}
 \label{sec:analysis_Lzc}
@@ -4806,7 +4806,7 @@ From the full $r(t)$ trajectory, we record $r_{\min}$ and $r_{\max}$ over the in
 \begin{equation}\label{eq:turning_err}
     \varepsilon_r = \frac{|r_{\mathrm{obs}}-r_{\mathrm{pred}}|}{r_{\mathrm{pred}}}\times 100\%.
 \end{equation}
-Reported cone/paraboloid agreements are $\le 0.043\%$ (Table~\ref{tab:bounded_results}).
+Reported cone/paraboloid agreements are $\le 0.043\%$ (Table~\ref{tab:bounded_orbits}).
 
 \subsection{Energy Monitoring}
 \label{sec:analysis_energy}
@@ -4854,7 +4854,7 @@ The reduced equations hold $L_z$ fixed. As a numerical consistency check, each s
 \end{equation}
 from the $\phi$ increment at each step and compares it with the nominal $L_z$. Relative deviations remain below $10^{-9}\%$ on bounded runs, so the observed energy drift is due to Euler truncation rather than loss of $L_z$.
 
-Sec.~\ref{sec:results} applies these definitions: Sec.~\ref{sec:bounded} reports the cone and paraboloid results in Table~\ref{tab:bounded_results}; Sec.~\ref{sec:limit_escape} treats the Gaussian escape runs in Table~\ref{tab:gauss_limit}.
+Sec.~\ref{sec:results} applies these definitions: Sec.~\ref{sec:bounded} reports the cone and paraboloid results in Tables~\ref{tab:bounded_setup} and~\ref{tab:bounded_orbits}; Sec.~\ref{sec:limit_escape} treats the Gaussian escape runs in Table~\ref{tab:gauss_limit}.
 
 % =============================================================================
 \section{Results}
@@ -5033,12 +5033,12 @@ The figures below were generated from the Euler integration in Sec.~\ref{sec:sim
 \subsection{Bounded Motion}
 \label{sec:bounded}
 
-The cone $z=r$ and paraboloid $z=r^2$ each have two zeros of $U_{\mathrm{eq}}(r)$, confining the particle between inner and outer turning radii. Table~\ref{tab:bounded_results} summarizes the initial conditions, turning-point agreement, periodicity, and energy drift ($m=g=1$, $\Delta t=0.005\,\mathrm{s}$).
+The cone $z=r$ and paraboloid $z=r^2$ each have two zeros of $U_{\mathrm{eq}}(r)$, confining the particle between inner and outer turning radii. Tables~\ref{tab:bounded_setup} and~\ref{tab:bounded_orbits} summarize the initial conditions, energy monitoring, turning-point agreement, and periodic radial dynamics ($m=g=1$, $\Delta t=0.005\,\mathrm{s}$).
 
 \begin{table}[htbp]
     \centering
-    \caption{Bounded-motion results: cone and paraboloid ($m=g=1$, $\Delta t=0.005\,\mathrm{s}$).}
-    \label{tab:bounded_results}
+    \caption{Bounded-motion setup and energy monitoring: cone and paraboloid ($m=g=1$, $\Delta t=0.005\,\mathrm{s}$).}
+    \label{tab:bounded_setup}
     \small
     \renewcommand{\arraystretch}{1.22}
     \setlength{\tabcolsep}{8pt}
@@ -5061,7 +5061,22 @@ The cone $z=r$ and paraboloid $z=r^2$ each have two zeros of $U_{\mathrm{eq}}(r)
         $U_{\mathrm{eff}}(r_0)$ (J) & -0.2500 & 0 \\
         $S(r_0)$ & 3.0 & 9.6 \\
         $L_{z,c}(r_0)$ (kg\,m$^2$/s) & 1.3145 & 2.0365 \\
-        \addlinespace[0.25em]
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+    \centering
+    \caption{Turning points and periodic radial dynamics: cone and paraboloid ($m=g=1$, $\Delta t=0.005\,\mathrm{s}$).}
+    \label{tab:bounded_orbits}
+    \small
+    \renewcommand{\arraystretch}{1.22}
+    \setlength{\tabcolsep}{8pt}
+    \sisetup{table-format=1.4}
+    \begin{tabular}{@{} l S[table-format=1.4] S[table-format=1.4] @{}}
+        \toprule
+        {Quantity} & {Cone ($z=r$)} & {Paraboloid ($z=r^2$)} \\
+        \midrule
         \tablesection{Turning radii: prediction vs.\ simulation}
         Inner $r_t$ pred.\ (m) & 0.6643 & 1.2000 \\
         Inner $r_t$ obs.\ (m) & 0.6646 & 1.2000 \\
@@ -5220,7 +5235,7 @@ This study derived and numerically checked the EAPEF framework for motion on a s
 We obtained the reduced Lagrangian, proved $L_z$ conservation, derived $U_{\mathrm{eq}}(r)$ and the radial ODE, and established the circular-orbit condition $L_{z,c}=\sqrt{mgr_c^3 z'(r_c)}$ and stability criterion $S(r)=3z'+rz''\ge 0$ (Table~\ref{tab:dimensional}, Sec.~\ref{sec:stability}).
 
 \parhead{Numerical results.}
-Explicit Euler integration yielded turning-point agreement at the 0.04\% level on the cone and paraboloid, period ratios $T_a/T_r=1.244$ and $0.536$, azimuthal precession $\langle\Delta\phi\rangle/(2\pi)=0.804$ and $1.864$ per radial cycle (Fig.~\ref{fig:xy_precession}), and energy drifts below $0.44\%$ over 100 s (Table~\ref{tab:bounded_results}, Fig.~\ref{fig:dt_scaling}).
+Explicit Euler integration yielded turning-point agreement at the 0.04\% level on the cone and paraboloid, period ratios $T_a/T_r=1.244$ and $0.536$, azimuthal precession $\langle\Delta\phi\rangle/(2\pi)=0.804$ and $1.864$ per radial cycle (Fig.~\ref{fig:xy_precession}), and energy drifts below $0.44\%$ over 100 s (Tables~\ref{tab:bounded_setup} and~\ref{tab:bounded_orbits}, Fig.~\ref{fig:dt_scaling}).
 
 \parhead{Gaussian escape.}
 For $z=e^{-r^2}$, the EAPEF has a single zero and both initial conditions in Table~\ref{tab:gauss_limit} lead to outward escape, as predicted analytically.
