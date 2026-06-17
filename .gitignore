@@ -1,4 +1,6 @@
-# LaTeX build artifacts (compile.ps1 keeps main.tex, main.pdf, main.toc, main.aux)
+# LaTeX build artifacts (compile.ps1 keeps only main.tex + main.pdf)
+report/output/*.aux
+report/output/*.toc
 report/output/*.log
 report/output/*.out
 report/output/*.synctex.gz

@@ -24,8 +24,8 @@ $args = @(
 & $pdflatex @args | Out-Null
 & $pdflatex @args | Out-Null
 
-# Keep toc/aux so later single-pass compiles do not wipe the table of contents
-$keep = @("main.pdf", "main.tex", "main.toc", "main.aux")
+# Keep only the deliverables; aux/toc are needed only during the 3-pass build above
+$keep = @("main.pdf", "main.tex")
 Get-ChildItem $outDir -File | Where-Object { $keep -notcontains $_.Name } | Remove-Item -Force
 
 Write-Host "Built: report\output\main.tex (standalone)"
